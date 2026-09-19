@@ -16,4 +16,3 @@ A structural authority test proves no copied state value is introduced.
 No placement contract, host rendering, or visual proof.
 
 No claim of autonomous creation, production readiness, canon, or visual quality is made.
-
