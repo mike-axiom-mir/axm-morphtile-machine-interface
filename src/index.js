@@ -19,7 +19,8 @@ function run(request) {
   if (!body.length) body.push({ text: intent.text || "Interface candidate" });
   return result(request, MACHINE, "CANDIDATE", {
     candidate: { schema: "morphtile.view-operation/v0.4", operation: { op: "view.set", id: intent.tile_path, view: { title: intent.title || "Interface", body } } },
-    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains presentation plus real tile/action names and no copied state values" }]
+    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains presentation plus real tile/action names and no copied state values" }],
+    warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }]
   });
 }
 

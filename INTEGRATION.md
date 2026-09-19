@@ -10,5 +10,6 @@ Tested contract target:
 
 The adapter emits candidate data only. The receiving caller must validate it against the pinned MorphTile runtime, propose it through clone/plan, inspect conflicts and HOLDs, commit only with the applicable authority, preserve the receipt, and retain rollback.
 
-No compatibility is claimed with newer or older MorphTile commits until their conformance tests are run.
+The v0.4 operation sets a view; it does not rewrite the target tile's declared forms. The target must already exist and declare `ui_panel`, or a host will correctly omit that presentation.
 
+No compatibility is claimed with newer or older MorphTile commits until their conformance tests are run.

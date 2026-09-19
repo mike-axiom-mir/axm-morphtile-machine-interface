@@ -8,6 +8,7 @@ test("binds presentation to canonical names without copying authoritative state"
   assert.equal(out.status, "CANDIDATE");
   assert.deepEqual(operation, { op: "view.set", id: "mt_counter", view: { title: "Counter", body: [{ value: "count", label: "count" }, { button: "increment", label: "increment" }] } });
   assert.ok(!JSON.stringify(out.candidate).includes("authoritative_state"));
+  assert.equal(out.warnings[0].code, "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL");
 });
 
 test("holds presentation placement until MorphTile defines the contract", () => {
