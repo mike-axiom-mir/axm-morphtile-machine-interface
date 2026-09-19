@@ -1,0 +1,1 @@
+{"envelope_version":"0.1","request_id":"interface-counter-1","goal":"Present and operate the canonical counter","intent":{"tile_path":"mt_counter","title":"Counter","readout":"count","action":"increment"},"provenance":{"caller":"fixture"}}
