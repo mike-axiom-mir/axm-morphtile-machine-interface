@@ -1,8 +1,8 @@
 # Roadmap
 
-1. Execute the operation in pinned MorphTile; prove two presentations edit/read the same canonical value; then consume a future core-owned placement descriptor.
-2. Add negative and budget fixtures discovered by that work.
-3. Keep every candidate inspectable and every unsupported request explicit.
-4. Re-test before widening the declared MorphTile compatibility range.
+1. Add host-side visual evidence for the supported presentation modes without turning host/session state into canonical matter.
+2. Add negative integration fixtures for missing anchors and host-mode HOLD outcomes.
+3. Deepen safe action-binding fixtures while keeping state references symbolic rather than copied.
+4. Re-test and re-pin before widening MorphTile compatibility.
 
-Do not add speculative breadth merely to make the repository look complete.
+Do not add arbitrary responsive-layout claims or speculative host authority merely to make the repository look complete.

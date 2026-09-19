@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  unit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,3 +16,22 @@ jobs:
         with:
           node-version: 20
       - run: npm test
+
+  morphtile-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: machine
+      - uses: actions/checkout@v4
+        with:
+          repository: mike-axiom-mir/axm-morphtile
+          ref: fea73dc1a838f90abdf7c3db8b52b23224792137
+          path: morphtile
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm run test:integration
+        working-directory: machine
+        env:
+          MORPHTILE_CORE: ../morphtile/core/morphtile.js

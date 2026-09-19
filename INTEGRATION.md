@@ -3,13 +3,22 @@
 Tested contract target:
 
 - repository: mike-axiom-mir/axm-morphtile
-- commit: 13d83a2b2c0d12644442d3d9e45bcbe0af19876a
+- commit: fea73dc1a838f90abdf7c3db8b52b23224792137
 - format: v0.4
 - provisional envelope: v0.1
-- fixture set: v0.1
+- machine version: 0.2.0
 
-The adapter emits candidate data only. The receiving caller must validate it against the pinned MorphTile runtime, propose it through clone/plan, inspect conflicts and HOLDs, commit only with the applicable authority, preserve the receipt, and retain rollback.
+Without placement, the adapter preserves the original `morphtile.view-operation/v0.4` shape.
 
-The v0.4 operation sets a view; it does not rewrite the target tile's declared forms. The target must already exist and declare `ui_panel`, or a host will correctly omit that presentation.
+With placement, the adapter emits `morphtile.interface-operations/v0.4` with exactly two ordinary MorphTile operations:
 
-No compatibility is claimed with newer or older MorphTile commits until their conformance tests are run.
+1. `view.set`
+2. `presentation.set`
+
+The receiver still owns clone → plan → commit → receipt → rollback. The integration test uses the real pinned MorphTile core and proves that path, including exact rollback.
+
+The machine never receives authority to copy canonical values or session placement into matter. It constructs presentation descriptors only from the public descriptor fields. MorphTile may layer session movement later through `resolvePresentation()`; that layering does not mutate canonical world state.
+
+The target tile must already exist and declare `ui_panel` for host presentation. Missing anchors and unsupported host modes remain visible MorphTile resolution HOLDs.
+
+No compatibility is claimed with newer or older MorphTile commits until re-tested and re-pinned.
