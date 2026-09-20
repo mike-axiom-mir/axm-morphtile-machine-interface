@@ -60,6 +60,26 @@ test("orphan labels and binding declarations hold instead of being silently igno
   assert.equal(out.holds[0].code, "HOLD_INTERFACE_ORPHAN_BINDINGS");
 });
 
+test("declared symbolic bindings must all be consumed by the authored interface", () => {
+  const extraAction = clone(fixture);
+  extraAction.request_id = "interface-unused-action-binding";
+  extraAction.intent.bindings.actions.push("decrement");
+  let out = run(extraAction);
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INVALID_INTERFACE_BINDING");
+  assert.equal(out.holds[0].detail, "intent.bindings.actions declares unused symbolic name: decrement");
+  assert.equal(out.candidate, null);
+
+  const extraCrossKind = clone(fixture);
+  extraCrossKind.request_id = "interface-unused-control-binding";
+  extraCrossKind.intent.bindings.controls = ["count"];
+  out = run(extraCrossKind);
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INVALID_INTERFACE_BINDING");
+  assert.equal(out.holds[0].detail, "intent.bindings.controls declares unused symbolic name: count");
+  assert.equal(out.candidate, null);
+});
+
 test("explicit text is preserved alongside controls instead of disappearing", () => {
   const request = clone(fixture);
   request.request_id = "interface-text-plus-controls";
