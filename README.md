@@ -2,13 +2,13 @@
 
 Builds candidate interface matter over canonical MorphTile matter. It emits `view.set`; when placement is requested it emits a deterministic two-operation candidate containing `view.set` plus MorphTile's public `presentation.set` contract.
 
-## v0.5 bounded relative, conditional, repeated and local-tile composition
+## v0.5 bounded relative, conditional, repeated and tile-owned composition
 
 The machine fails closed on top-level interface intent it does not understand and can author a complete ordered `view.body` atomically through `intent.elements`.
 
 Supported element kinds are deliberately bounded to MorphTile-native `text`, `readout`, `meter`, `control`, `action`, `tile`, `row`, `group`, `when`, and `repeat` nodes. `row`, `group`, `when`, and `repeat` recursively contain `children`, giving creation-time relative/conditional/repeated layout without inventing a private pixel/layout or expression authority. Authored order is preserved at every level.
 
-A `tile` element is the bounded same-container composition primitive: `{ kind: "tile", tile_id: "mt_core" }`. It compiles directly to MorphTile's native `{ tile: "mt_core" }` view node. `tile_id` must be one local MorphTile id matching `[A-Za-z0-9_-]+`; slash-separated/full-path addressing is intentionally not authored by this machine yet. The reference carries no copied target state, target actions or bridge authority. The referenced tile keeps ownership of its own view/state/runtime bindings, while MorphTile core performs read-only resolution at render time. Missing local targets remain visible inert `v-missing` matter rather than being fabricated.
+A `tile` element has two deliberately separate authoring forms. Local composition uses `{ kind: "tile", tile_id: "mt_core" }` and compiles to native `{ tile: "mt_core" }`. Explicit same-root path composition uses `{ kind: "tile", tile_path: "mt_shell/mt_inner" }` and compiles to `{ tile: "/mt_shell/mt_inner" }`, forcing exact native path resolution instead of depending on MorphTile's relative fallback order. The explicit path must be canonical, multi-segment, and share the interface target's top-level root. Cross-root paths HOLD with `HOLD_INTERFACE_TILE_SCOPE` rather than becoming an implicit bridge. Exactly one of `tile_id` or `tile_path` is required. Neither form carries copied target state, target actions, permissions, parent bindings or bridge state; the referenced tile remains owner of its own view/state/runtime bindings.
 
 A `meter` is the bounded canonical-state visualization primitive: `{ kind: "meter", binding: "energy", min: 0, max: 100, label: "Energy" }`. It compiles to MorphTile's native `{ meter: ["var", "energy"], min: 0, max: 100, label: "Energy" }`, so the rendered bar reads the real target variable at render time. The binding must be declared in `intent.bindings.readouts`; the machine carries the symbolic variable name and explicit range, never a copied state value. Ranges require finite numeric `min` and `max` with `max > min`; defaults are not invented.
 
@@ -21,7 +21,8 @@ The authored layout tree is bounded to 64 total nodes and six nested container l
 Important creation-side rules:
 
 - the interface target and tile-mode presentation anchor must match MorphTile-compatible symbolic tile paths;
-- local `tile` composition accepts one same-container tile id only; full-path/cross-container embedding remains outside the bounded producer contract;
+- local `tile_id` composition accepts one local tile id only;
+- explicit `tile_path` composition accepts only canonical multi-segment paths inside the interface target's top-level root; cross-root composition remains outside the producer contract;
 - readout/meter/when/repeat/action/control names must be explicitly declared symbolic bindings, including when nested inside row/group/when/repeat layout;
 - every declared symbolic binding must be consumed by the authored interface; extra declarations HOLD instead of disappearing;
 - an embedded tile does not require or inherit parent binding declarations because it remains owner of its own view/state/actions;
@@ -33,15 +34,16 @@ Important creation-side rules:
 
 ## Boundary answers
 
-1. **What it does:** Builds candidate ordered/nested relative, bounded conditional/repeated and bounded same-container tile-composed views plus canonical presentation descriptors for an existing tile.
-2. **What it does not own:** A second state store, embedded-tile state/action ownership, canonical worlds, session/camera state, ambient host authority, arbitrary expression authoring, arbitrary pixel/responsive-layout design, cross-container addressing, or merge authority.
+1. **What it does:** Builds candidate ordered/nested relative, bounded conditional/repeated and bounded tile-composed views plus canonical presentation descriptors for an existing tile.
+2. **What it does not own:** A second state store, embedded-tile state/action ownership, canonical worlds, session/camera state, ambient host authority, arbitrary expression authoring, arbitrary pixel/responsive-layout design, cross-root addressing, or merge authority.
 3. **What it accepts:** `axm.morphtile.interface-request/v0.1` in the provisional v0.1 envelope.
 4. **What it produces:** `morphtile.view-operation/v0.5`, or `morphtile.interface-operations/v0.5` containing `view.set` + `presentation.set` when placement is requested.
 5. **MorphTile interaction:** output goes through MorphTile's public contracts and clone → plan → commit → receipt → rollback path. MorphTile does not depend on this repository.
-6. **Authority boundary:** placement normalization copies only the public presentation descriptor fields. Canonical-state and session-state snapshots are not copied into the candidate. A local tile reference names existing matter for read-only view composition; it does not create, bridge or authorize that matter.
+6. **Authority boundary:** placement normalization copies only public presentation descriptor fields. Canonical-state and session-state snapshots are not copied into the candidate. Tile references name existing matter for read-only view composition; they do not create, bridge or authorize that matter.
 7. **Interactive/state-read binding boundary:** readout/meter/when/repeat variable names, action names, and parameter-control names must be symbolic names explicitly declared in `intent.bindings.readouts`, `intent.bindings.actions` or `intent.bindings.controls`. Missing, undeclared, malformed, unused, or authority-shaped binding data returns `HOLD_INVALID_INTERFACE_BINDING`. Parameter controls emit MorphTile's native `{ control: "<param-id>" }` view node and never copy the parameter value. Meters, `when`, and `repeat` containers emit bounded MorphTile-native expressions and never copy the variable value.
-8. **Layout boundary:** row/group/when/repeat are structural presentation containers only. They do not create state, permissions, host windows, absolute pixels, or action authority. Local tile composition delegates rendering to existing target matter rather than duplicating it.
-9. **When placement cannot be satisfied:** invalid or unknown presentation descriptors return `HOLD_INVALID_PRESENTATION_PLACEMENT`.
+8. **Layout boundary:** row/group/when/repeat are structural presentation containers only. They do not create state, permissions, host windows, absolute pixels, or action authority. Tile composition delegates rendering to existing target matter rather than duplicating it.
+9. **Path boundary:** same-root explicit paths are ordinary bounded composition and are emitted in an unambiguous native absolute form; cross-root composition remains HOLD pending a separate authority/proof contract.
+10. **When placement cannot be satisfied:** invalid or unknown presentation descriptors return `HOLD_INVALID_PRESENTATION_PLACEMENT`.
 
 A binding declaration is not by itself proof that an arbitrary target exposes that name. The caller/receiver must prove it against the target MorphTile before accepting the candidate; emitted candidates carry `CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET`.
 
@@ -53,17 +55,18 @@ Pinned integration proof is also defined:
 
     MORPHTILE_CORE=../axm-morphtile/core/morphtile.js MORPHTILE_COMMIT=<exact-tested-commit> npm run test:integration
 
-GitHub CI checks out the exact MorphTile commit recorded in `machine.json` and asserts that runtime identity before claiming compatibility.
+GitHub CI checks out the exact MorphTile commit recorded in `machine.json` and asserts that runtime identity before claiming compatibility. A second integration lane checks the exact Assembly receiver pin in `fixtures/integration-sources.json`.
 
 Node 18 or later; zero runtime dependencies; no secrets required for the local path.
 
 ## Truth boundary
 
-- IMPLEMENTED: fail-closed interface intent normalization, atomic ordered/nested relative view generation, bounded same-container local-tile composition, bounded canonical-state meters, bounded truthy canonical-state conditional visibility, bounded canonical-state repeat generation, legacy view candidates, recursive symbolic binding validation with exact consumption, native MorphTile parameter-control nodes, authored text + interactive composition, placement normalization and `presentation.set` candidate output.
-- TESTED LOCALLY/CI WHEN GREEN: unknown/malformed intent HOLDs, orphan/unused binding HOLDs, local tile-id bounds and authority-shaped-extra HOLDs, meter range/binding HOLDs, conditional and repeat binding/field/depth/budget HOLDs, nested depth/node budgets, exact authored order/text preservation, recursive symbolic binding validation, descriptor validation and structural authority boundaries.
-- PINNED INTEGRATION HARNESS: executes ordered/nested view, local tile composition, meter, conditional visibility, bounded repeat and placement behavior through real MorphTile clone → plan → commit → receipt → rollback; proves local tile composition resolves existing tile-owned matter read-only and missing targets remain visibly inert; proves native row/group materialization through `compilePanel`; proves generated meters/conditionals/repeats follow canonical variables at render time; and proves canonical parameter values remain unchanged by interface generation.
+- IMPLEMENTED: fail-closed interface intent normalization, atomic ordered/nested relative view generation, bounded local tile composition, bounded explicit same-root path composition, bounded canonical-state meters, bounded truthy canonical-state conditional visibility, bounded canonical-state repeat generation, legacy view candidates, recursive symbolic binding validation with exact consumption, native MorphTile parameter-control nodes, authored text + interactive composition, placement normalization and `presentation.set` candidate output.
+- TESTED LOCALLY/CI WHEN GREEN: unknown/malformed intent HOLDs, orphan/unused binding HOLDs, local tile-id bounds, same-root explicit path bounds/scope, ambiguous tile-address HOLDs, authority-shaped-extra HOLDs, meter range/binding HOLDs, conditional and repeat binding/field/depth/budget HOLDs, nested depth/node budgets, exact authored order/text preservation, recursive symbolic binding validation, descriptor validation and structural authority boundaries.
+- PINNED INTEGRATION HARNESS: executes ordered/nested view, local and explicit same-root tile composition, meter, conditional visibility, bounded repeat and placement behavior through real MorphTile clone → plan → commit → receipt → rollback; proves composed tile-owned matter renders read-only and remains owner-controlled; proves native row/group materialization through `compilePanel`; proves generated meters/conditionals/repeats follow canonical variables at render time; and proves canonical parameter values remain unchanged by interface generation.
 - COMPATIBILITY TARGET: exact MorphTile v0.4 snapshot `2bdf8eade1376055473b9cc1b11734b72a5566e5`.
+- ASSEMBLY RECEIVER TARGET: exact integrated Assembly `1a28d546cfa986c00b44abe444ea7b2dd4b56283`.
 - EXPERIMENTAL: envelope v0.1 and candidate schemas in this repository.
-- NOT CLAIMED: universal proof that any caller-supplied binding declaration matches its arbitrary target, compatibility beyond the pinned MorphTile commit, host rendering quality, arbitrary responsive/pixel layout, arbitrary expressions or local repeat-index expressions, full-path/cross-container tile embedding, or ambient host permissions.
+- NOT CLAIMED: universal proof that any caller-supplied binding declaration matches its arbitrary target, compatibility beyond the pinned MorphTile/Assembly commits, host rendering quality, arbitrary responsive/pixel layout, arbitrary expressions or local repeat-index expressions, cross-root tile composition, or ambient host permissions.
 
 This remains a replaceable creation machine, not a dependency of MorphTile core and not evidence that MorphTile can autonomously manufacture MorphTile.
