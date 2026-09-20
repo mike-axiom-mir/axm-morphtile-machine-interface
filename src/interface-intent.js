@@ -32,6 +32,7 @@ const ELEMENT_FIELDS = Object.freeze({
   group: Object.freeze(["kind", "children"])
 });
 const TILE_ID = /^[A-Za-z0-9_-]+$/;
+const TILE_PATH = /^[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/;
 const MAX_LAYOUT_NODES = 64;
 const MAX_LAYOUT_DEPTH = 6;
 
@@ -125,8 +126,8 @@ function normalizeInterfaceIntent(intent) {
   assertOnlyFields(intent);
 
   if (intent.tile_path !== undefined) {
-    if (typeof intent.tile_path !== "string" || !TILE_ID.test(intent.tile_path)) {
-      throw new InterfaceIntentError("HOLD_INTERFACE_TILE_PATH_INVALID", "intent.tile_path must match [A-Za-z0-9_-]+");
+    if (typeof intent.tile_path !== "string" || !TILE_PATH.test(intent.tile_path)) {
+      throw new InterfaceIntentError("HOLD_INTERFACE_TILE_PATH_INVALID", "intent.tile_path must be a MorphTile path of [A-Za-z0-9_-]+ segments separated by /");
     }
   }
 
@@ -175,6 +176,7 @@ module.exports = {
   LEGACY_CONTENT_FIELDS,
   ELEMENT_FIELDS,
   TILE_ID,
+  TILE_PATH,
   MAX_LAYOUT_NODES,
   MAX_LAYOUT_DEPTH,
   InterfaceIntentError,
