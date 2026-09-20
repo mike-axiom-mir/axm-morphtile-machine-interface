@@ -136,3 +136,86 @@ test("text fields are bounded to strings rather than copied as arbitrary authori
   assert.equal(out.holds[0].code, "HOLD_INTERFACE_TEXT_INVALID");
   assert.equal(out.candidate, null);
 });
+
+test("authored intent accessors HOLD before caller code executes", () => {
+  const request = clone(fixture);
+  request.request_id = "interface-intent-accessor";
+  let calls = 0;
+  Object.defineProperty(request.intent, "title", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      calls += 1;
+      return "Injected";
+    }
+  });
+  const before = Object.getOwnPropertyDescriptor(request.intent, "title");
+
+  const out = run(request);
+
+  assert.equal(calls, 0);
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INTERFACE_INTENT_NONPORTABLE_VALUE");
+  assert.match(out.holds[0].detail, /intent\.title/);
+  assert.equal(out.candidate, null);
+  const after = Object.getOwnPropertyDescriptor(request.intent, "title");
+  assert.equal(after.get, before.get);
+  assert.equal(after.enumerable, before.enumerable);
+});
+
+test("nested binding accessors HOLD without executing during normalization", () => {
+  const request = clone(fixture);
+  request.request_id = "interface-binding-accessor";
+  let calls = 0;
+  Object.defineProperty(request.intent.bindings.actions, "0", {
+    enumerable: true,
+    configurable: true,
+    get() {
+      calls += 1;
+      return "increment";
+    }
+  });
+
+  const out = run(request);
+
+  assert.equal(calls, 0);
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INTERFACE_INTENT_NONPORTABLE_VALUE");
+  assert.match(out.holds[0].detail, /intent\.bindings\.actions\[0\]/);
+  assert.equal(out.candidate, null);
+});
+
+test("hidden toJSON cannot rewrite authored interface intent", () => {
+  const request = clone(fixture);
+  request.request_id = "interface-hidden-tojson";
+  let calls = 0;
+  Object.defineProperty(request.intent, "toJSON", {
+    enumerable: false,
+    configurable: true,
+    value() {
+      calls += 1;
+      return { tile_path: "mt_other", title: "Rewritten" };
+    }
+  });
+
+  const out = run(request);
+
+  assert.equal(calls, 0);
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INTERFACE_INTENT_NONPORTABLE_VALUE");
+  assert.match(out.holds[0].detail, /intent\.toJSON/);
+  assert.equal(out.candidate, null);
+});
+
+test("explicit undefined intent fields HOLD instead of disappearing through JSON transport", () => {
+  const request = clone(fixture);
+  request.request_id = "interface-undefined-authorship";
+  request.intent.text = undefined;
+
+  const out = run(request);
+
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INTERFACE_INTENT_NONPORTABLE_VALUE");
+  assert.match(out.holds[0].detail, /intent\.text/);
+  assert.equal(out.candidate, null);
+});
