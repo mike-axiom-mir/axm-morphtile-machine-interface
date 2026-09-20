@@ -1,11 +1,18 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");
+const manifest = require("../machine.json");
 const { run } = require("../src");
 
 const corePath = process.env.MORPHTILE_CORE;
+const runtimeCommit = process.env.MORPHTILE_COMMIT;
+
+function assertPinnedRuntime() {
+  assert.equal(runtimeCommit, manifest.tested_against.commit, "CI runtime must match machine.json tested_against.commit");
+}
 
 test("placement candidate commits and rolls back through the pinned MorphTile transaction path", { skip: !corePath }, () => {
+  assertPinnedRuntime();
   const MT = require(path.resolve(corePath));
   const ws = MT.createWorkspace(MT.seedWorld());
   const before = MT.structHash(ws.live);
@@ -81,6 +88,7 @@ test("placement candidate commits and rolls back through the pinned MorphTile tr
 });
 
 test("declared parameter control binds to the real pinned MorphTile parameter without copying its value", { skip: !corePath }, () => {
+  assertPinnedRuntime();
   const MT = require(path.resolve(corePath));
   const ws = MT.createWorkspace(MT.seedWorld());
   const before = MT.structHash(ws.live);
@@ -128,4 +136,50 @@ test("declared parameter control binds to the real pinned MorphTile parameter wi
   const rollback = MT.rollback(ws, committed.receipt.rollback_token);
   assert.ok(rollback.ok && rollback.exact);
   assert.equal(MT.structHash(ws.live), before);
+});
+
+test("authored explanatory text survives beside a canonical control in the pinned runtime", { skip: !corePath }, () => {
+  assertPinnedRuntime();
+  const MT = require(path.resolve(corePath));
+  const ws = MT.createWorkspace(MT.seedWorld());
+  const tower = ws.live.tiles.mt_tower;
+  const param = tower.params.find((p) => p.id === "levels");
+  const beforeValue = MT.paramValue(tower, param);
+
+  const out = run({
+    envelope_version: "0.1",
+    request_id: "pinned-text-and-control",
+    goal: "Keep authored explanation beside a real canonical control",
+    intent: {
+      tile_path: "mt_tower",
+      title: "Tower tuning",
+      text: "Adjust the existing tower parameter.",
+      control: "levels",
+      control_label: "Tower levels",
+      bindings: { controls: ["levels"] }
+    },
+    provenance: { caller: "pinned-integration-test" }
+  });
+
+  assert.equal(out.status, "CANDIDATE");
+  assert.deepEqual(out.candidate.operation.view.body, [
+    { text: "Adjust the existing tower parameter." },
+    { control: "levels", label: "Tower levels" }
+  ]);
+
+  const candidate = MT.cloneBody(ws, "ai", "ai:interface-machine");
+  const edited = MT.editCandidate(ws, candidate, out.candidate.operation);
+  assert.ok(edited.ok, edited.error);
+  const plan = MT.planMerge(ws, [candidate]);
+  assert.equal(plan.status, "READY");
+  const committed = MT.commitPlan(ws, plan.id);
+  assert.ok(committed.ok);
+
+  const html = MT.vnodeToHTML(MT.compilePanel(ws.live).root);
+  assert.match(html, /Adjust the existing tower parameter\./);
+  assert.match(html, /data-param="mt_tower:levels"/);
+  assert.equal(MT.paramValue(ws.live.tiles.mt_tower, ws.live.tiles.mt_tower.params.find((p) => p.id === "levels")), beforeValue);
+
+  const rollback = MT.rollback(ws, committed.receipt.rollback_token);
+  assert.ok(rollback.ok && rollback.exact);
 });

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0 — 2026-09-20
+
+- Added a fail-closed top-level interface intent contract so unsupported or misspelled fields cannot disappear silently.
+- Bounded tile and anchor references to MorphTile-compatible symbolic tile IDs.
+- Rejected orphan labels and binding declarations that would otherwise be ignored.
+- Preserved explicitly authored text beside readouts, controls and actions instead of dropping it when interactive nodes are present.
+- Preserved explicit empty titles/labels rather than replacing them through truthiness fallbacks.
+- Re-pinned exact MorphTile runtime conformance to `a579182ae585e5722ac87dd0cc8209963b18d000` and made CI assert that runtime identity matches `machine.json`.
+- Added pinned runtime proof that explanatory text and a canonical parameter control coexist without copying or changing the parameter value.
+
 ## 0.2.0 — 2026-09-20
 
 - Retained the original view-only candidate shape for requests without placement.
