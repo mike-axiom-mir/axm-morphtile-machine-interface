@@ -10,9 +10,25 @@ const INTERFACE_INTENT_FIELDS = Object.freeze([
   "control_label",
   "action",
   "action_label",
+  "elements",
   "bindings",
   "placement"
 ]);
+const LEGACY_CONTENT_FIELDS = Object.freeze([
+  "text",
+  "readout",
+  "readout_label",
+  "control",
+  "control_label",
+  "action",
+  "action_label"
+]);
+const ELEMENT_FIELDS = Object.freeze({
+  text: Object.freeze(["kind", "text"]),
+  readout: Object.freeze(["kind", "binding", "label"]),
+  control: Object.freeze(["kind", "binding", "label"]),
+  action: Object.freeze(["kind", "binding", "label"])
+});
 const TILE_ID = /^[A-Za-z0-9_-]+$/;
 
 class InterfaceIntentError extends Error {
@@ -43,6 +59,48 @@ function assertString(value, field) {
   }
 }
 
+function normalizeElements(value) {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENTS_INVALID", "intent.elements must be a non-empty array when supplied");
+  }
+  if (value.length > 64) {
+    throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENTS_INVALID", "intent.elements may contain at most 64 elements");
+  }
+  return value.map((element, index) => {
+    const at = "intent.elements[" + index + "]";
+    if (!isPlainObject(element)) {
+      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + " must be an object");
+    }
+    if (typeof element.kind !== "string" || !Object.prototype.hasOwnProperty.call(ELEMENT_FIELDS, element.kind)) {
+      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".kind must be text|readout|control|action");
+    }
+    const allowed = ELEMENT_FIELDS[element.kind];
+    const unknown = Object.keys(element).filter((key) => !allowed.includes(key)).sort();
+    if (unknown.length) {
+      throw new InterfaceIntentError(
+        "HOLD_INTERFACE_ELEMENT_FIELD_UNKNOWN",
+        at + " contains unsupported field" + (unknown.length === 1 ? ": " : "s: ") + unknown.join(", ")
+      );
+    }
+    if (element.kind === "text") {
+      if (typeof element.text !== "string") {
+        throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".text must be a string");
+      }
+      return { kind: "text", text: element.text };
+    }
+    if (typeof element.binding !== "string") {
+      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".binding must be a string");
+    }
+    if (element.label !== undefined && typeof element.label !== "string") {
+      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".label must be a string when supplied");
+    }
+    const normalized = { kind: element.kind, binding: element.binding };
+    if (element.label !== undefined) normalized.label = element.label;
+    return normalized;
+  });
+}
+
 function normalizeInterfaceIntent(intent) {
   if (!isPlainObject(intent)) {
     throw new InterfaceIntentError("HOLD_INTERFACE_INTENT_INVALID", "intent must be an object");
@@ -59,6 +117,14 @@ function normalizeInterfaceIntent(intent) {
     assertString(intent[field], "intent." + field);
   }
 
+  const elements = normalizeElements(intent.elements);
+  if (elements !== undefined && LEGACY_CONTENT_FIELDS.some((field) => intent[field] !== undefined)) {
+    throw new InterfaceIntentError(
+      "HOLD_INTERFACE_CONTENT_AMBIGUOUS",
+      "intent.elements cannot be mixed with legacy text/readout/control/action fields because authored order would be ambiguous"
+    );
+  }
+
   const pairs = [
     ["readout", "readout_label"],
     ["control", "control_label"],
@@ -70,20 +136,26 @@ function normalizeInterfaceIntent(intent) {
     }
   }
 
-  const hasInteractive = ["readout", "control", "action"].some((key) => intent[key] !== undefined && intent[key] !== null);
-  if (intent.bindings !== undefined && !hasInteractive) {
+  const hasInteractiveLegacy = ["readout", "control", "action"].some((key) => intent[key] !== undefined && intent[key] !== null);
+  const hasInteractiveElements = !!(elements && elements.some((element) => element.kind !== "text"));
+  if (intent.bindings !== undefined && !hasInteractiveLegacy && !hasInteractiveElements) {
     throw new InterfaceIntentError(
       "HOLD_INTERFACE_ORPHAN_BINDINGS",
       "intent.bindings requires at least one requested readout, control or action"
     );
   }
 
-  return JSON.parse(JSON.stringify(intent));
+  const normalized = JSON.parse(JSON.stringify(intent));
+  if (elements !== undefined) normalized.elements = elements;
+  return normalized;
 }
 
 module.exports = {
   INTERFACE_INTENT_FIELDS,
+  LEGACY_CONTENT_FIELDS,
+  ELEMENT_FIELDS,
   TILE_ID,
   InterfaceIntentError,
+  normalizeElements,
   normalizeInterfaceIntent
 };

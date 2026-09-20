@@ -1,35 +1,41 @@
 # Status
 
-- Machine version: 0.3.0
+- Machine version: 0.4.0
 - State: CANDIDATE — EXACT-HEAD CI REQUIRED
 - Local tests: `npm test`
-- MorphTile target: v0.4 at `a579182ae585e5722ac87dd0cc8209963b18d000`
+- MorphTile target: v0.4 at `b6b086edb70fd4657495fcf01cb9fcdedceafdaf`
 - Envelope: provisional v0.1
 - Visual proof: none
 
 ## Implemented in this candidate
 
-- Top-level interface intent fails closed on malformed or unknown fields instead of silently ignoring them.
-- Tile and presentation-anchor references are bounded to MorphTile-compatible symbolic tile IDs.
-- Orphan labels and binding declarations HOLD instead of being dropped.
-- Authored text is preserved beside readouts, controls and actions rather than disappearing when an interactive node exists.
-- Explicit empty titles and labels are preserved instead of being replaced by truthiness fallbacks.
-- Existing fail-closed symbolic readout/action/control declarations and presentation descriptors remain intact.
-- Interface generation still carries names and authored presentation data only, never canonical parameter values or session-state snapshots.
+- Interface Machine can generate a complete ordered view body in one request through `intent.elements` instead of forcing repeated `view.set` calls that would overwrite earlier authored interface matter.
+- Ordered element kinds are bounded to `text`, `readout`, `control`, and `action`, matching MorphTile's existing tile-owned view vocabulary.
+- Ordered interactive elements still require explicit symbolic declarations in `intent.bindings`; no parameter values, variable snapshots, signal payloads, canonical state, or session state are copied into candidate matter.
+- Unknown element fields HOLD instead of being silently ignored, including authority-shaped extras such as `state_value`.
+- Legacy single text/readout/control/action fields remain supported for compatibility.
+- Legacy body fields and `intent.elements` cannot be mixed, because that would make authored ordering ambiguous.
+- Ordered element count is bounded to 64 per request to keep machine output inspectable and deterministic.
+- Existing fail-closed top-level intent, presentation, placement, label, and symbolic-binding boundaries remain intact.
 
-## Pinned integration evidence
+## Why this belongs in Interface Machine
 
-GitHub CI must check the exact runtime identity against `machine.json`, then replay placement and parameter-control semantics through MorphTile clone → plan → commit → receipt → rollback. This candidate also requires a real MorphTile receipt proving authored explanatory text survives beside the canonical `mt_tower:levels` control while the parameter value remains unchanged.
+MorphTile core already represents an ordered `view.body` array with text, value, control and button nodes. The missing capability is creation strategy: deterministically assembling several supported nodes into one atomic `view.set` candidate without repeated overwrite-prone generation.
+
+No new MorphTile substrate primitive is required for ordered interface generation.
+
+## Evidence required before integration
+
+- full Interface Machine unit suite on the exact candidate head;
+- pinned MorphTile integration against `machine.json.tested_against.commit`;
+- regression proof that existing legacy requests still produce the same candidate shape;
+- ordered-element regressions for authored order, undeclared bindings, mixed legacy/ordered content, and unknown authority-shaped fields.
+
+The exact runtime pin has been advanced to converged MorphTile core `b6b086edb70fd4657495fcf01cb9fcdedceafdaf`; compatibility is earned only when the exact updated candidate head is green.
 
 ## Reusable rule learned
 
-A creation machine must fail closed on intent it would otherwise ignore, and it must not silently erase authored interface content merely because another supported interface element is present.
-
-## Placement decision
-
-These rules belong in Interface Machine. MorphTile already represents mixed view nodes and canonical parameter controls; no new universal interface primitive is required for them.
-
-A separate MorphTile-core substrate gap remains: `presentationError()` accepts unknown extra descriptor keys, allowing non-contract presentation data to become canonical matter when callers bypass this machine.
+When a canonical operation replaces a whole authored structure, a creation machine should assemble that structure completely and atomically rather than rely on repeated partial writes whose later calls erase earlier intent.
 
 ## HELD / open
 
@@ -37,6 +43,6 @@ A separate MorphTile-core substrate gap remains: `presentationError()` accepts u
 - Ambient host permissions remain unclaimed.
 - Generic caller-declared bindings still require target-local proof.
 - Compatibility beyond the exact pinned MorphTile commit remains unclaimed.
-- Core unknown-presentation-key rejection remains a separate MorphTile-core candidate/HOLD until repaired and verified.
+- Visual quality remains NOT_TESTED.
 
 No claim of autonomous creation, production readiness, CANON, or visual quality is made.

@@ -2,24 +2,25 @@
 
 Builds candidate interface matter over canonical MorphTile matter. It emits `view.set`; when placement is requested it emits a deterministic two-operation candidate containing `view.set` plus MorphTile's public `presentation.set` contract.
 
-## v0.3 intent integrity
+## v0.4 ordered interface matter
 
-The machine now fails closed on top-level interface intent it does not understand instead of silently ignoring misspelled or unsupported fields.
+The machine fails closed on top-level interface intent it does not understand and can author a complete ordered `view.body` atomically through `intent.elements`.
 
-Supported intent is deliberately small: tile target, title/text, one readout, one canonical parameter control, one action, optional labels, symbolic binding declarations, and optional MorphTile placement.
+Supported ordered element kinds are deliberately bounded to MorphTile-native `text`, `readout`, `control`, and `action` nodes. Authored element order is preserved exactly. Ordered and legacy body fields cannot be mixed because that would make author intent ambiguous, and ordered bodies are bounded to 64 elements.
 
 Important creation-side rules:
 
 - tile and anchor references must match MorphTile-compatible symbolic tile IDs;
 - readout/action/control names must be explicitly declared symbolic bindings;
 - orphan labels or binding declarations HOLD instead of disappearing;
-- authored text can coexist with interactive nodes and is preserved deterministically;
+- authored text and ordered elements are preserved deterministically;
 - explicit empty titles/labels remain authored empty strings instead of being replaced by defaults;
-- canonical/session state values are never copied into candidate interface matter.
+- canonical/session state values are never copied into candidate interface matter;
+- unknown or authority-shaped element fields HOLD rather than being silently retained.
 
 ## Boundary answers
 
-1. **What it does:** Builds candidate views and canonical presentation descriptors for an existing tile.
+1. **What it does:** Builds candidate ordered views and canonical presentation descriptors for an existing tile.
 2. **What it does not own:** A second state store, canonical worlds, session/camera state, ambient host authority, arbitrary responsive-layout design, or merge authority.
 3. **What it accepts:** `axm.morphtile.interface-request/v0.1` in the provisional v0.1 envelope.
 4. **What it produces:** `morphtile.view-operation/v0.4`, or `morphtile.interface-operations/v0.4` containing `view.set` + `presentation.set` when placement is requested.
@@ -44,10 +45,10 @@ Node 18 or later; zero runtime dependencies; no secrets required for the local p
 
 ## Truth boundary
 
-- IMPLEMENTED: fail-closed interface intent normalization, view candidates, symbolic readout/action/control declarations, native MorphTile parameter-control nodes, authored text + interactive composition, placement normalization and `presentation.set` candidate output.
-- TESTED LOCALLY/CI WHEN GREEN: unknown/malformed intent HOLDs, orphan intent HOLDs, exact text preservation, symbolic binding validation, descriptor validation and structural authority boundaries.
-- PINNED INTEGRATION HARNESS: executes placement through real MorphTile clone → plan → commit → receipt → rollback; proves a generated `levels` control resolves to the real `mt_tower` parameter; and proves authored explanatory text can coexist with that control without changing the parameter value.
-- COMPATIBILITY TARGET: exact MorphTile v0.4 snapshot `a579182ae585e5722ac87dd0cc8209963b18d000`.
+- IMPLEMENTED: fail-closed interface intent normalization, atomic ordered view-body generation, legacy view candidates, symbolic readout/action/control declarations, native MorphTile parameter-control nodes, authored text + interactive composition, placement normalization and `presentation.set` candidate output.
+- TESTED LOCALLY/CI WHEN GREEN: unknown/malformed intent HOLDs, orphan intent HOLDs, exact authored order/text preservation, symbolic binding validation, descriptor validation and structural authority boundaries.
+- PINNED INTEGRATION HARNESS: executes ordered view and placement behavior through real MorphTile clone → plan → commit → receipt → rollback, proves authored node order survives `compilePanel`, and proves canonical parameter values remain unchanged by interface generation.
+- COMPATIBILITY TARGET: exact MorphTile v0.4 snapshot `b6b086edb70fd4657495fcf01cb9fcdedceafdaf`.
 - EXPERIMENTAL: envelope v0.1 and candidate schemas in this repository.
 - NOT CLAIMED: universal proof that any caller-supplied binding declaration matches its arbitrary target, compatibility beyond the pinned MorphTile commit, host rendering quality, arbitrary responsive interface-layout design, or ambient host permissions.
 
