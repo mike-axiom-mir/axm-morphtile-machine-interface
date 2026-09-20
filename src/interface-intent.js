@@ -31,6 +31,7 @@ const ELEMENT_FIELDS = Object.freeze({
   meter: Object.freeze(["kind", "binding", "min", "max", "label"]),
   control: Object.freeze(["kind", "binding", "label"]),
   action: Object.freeze(["kind", "binding", "label"]),
+  tile: Object.freeze(["kind", "tile_id"]),
   row: Object.freeze(["kind", "children"]),
   group: Object.freeze(["kind", "children"]),
   when: Object.freeze(["kind", "binding", "children"]),
@@ -173,7 +174,7 @@ function normalizeElements(value, depth, state) {
       throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + " must be an object");
     }
     if (typeof element.kind !== "string" || !Object.prototype.hasOwnProperty.call(ELEMENT_FIELDS, element.kind)) {
-      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".kind must be text|readout|meter|control|action|row|group|when|repeat");
+      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".kind must be text|readout|meter|control|action|tile|row|group|when|repeat");
     }
     const allowed = ELEMENT_FIELDS[element.kind];
     const unknown = Object.keys(element).filter((key) => !allowed.includes(key)).sort();
@@ -188,6 +189,12 @@ function normalizeElements(value, depth, state) {
         throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".text must be a string");
       }
       return { kind: "text", text: element.text };
+    }
+    if (element.kind === "tile") {
+      if (typeof element.tile_id !== "string" || !TILE_ID.test(element.tile_id)) {
+        throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".tile_id must be one local MorphTile id matching [A-Za-z0-9_-]+");
+      }
+      return { kind: "tile", tile_id: element.tile_id };
     }
     if (element.kind === "row" || element.kind === "group" || element.kind === "when" || element.kind === "repeat") {
       if (!Array.isArray(element.children) || element.children.length === 0) {
@@ -306,7 +313,8 @@ function normalizeInterfaceIntent(intent) {
   const hasInteractiveLegacy = ["readout", "control", "action"].some((key) => authored[key] !== undefined && authored[key] !== null);
   const hasInteractiveElements = !!(elements && elements.some(function containsInteractive(element) {
     if (element.kind === "row" || element.kind === "group") return element.children.some(containsInteractive);
-    return element.kind !== "text";
+    if (element.kind === "text" || element.kind === "tile") return false;
+    return true;
   }));
   if (authored.bindings !== undefined && !hasInteractiveLegacy && !hasInteractiveElements) {
     throw new InterfaceIntentError(
