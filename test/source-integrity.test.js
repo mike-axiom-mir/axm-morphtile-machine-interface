@@ -57,6 +57,25 @@ test("non-finite authored placement values HOLD before JSON can rewrite them", (
   assert.equal(out.candidate, null);
 });
 
+test("special authored keys remain visible to fail-closed unknown-field validation", () => {
+  const request = clone(fixture);
+  request.request_id = "interface-proto-key";
+  Object.defineProperty(request.intent, "__proto__", {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value: { injected: true }
+  });
+
+  const out = run(request);
+
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INTERFACE_INTENT_FIELD_UNKNOWN");
+  assert.match(out.holds[0].detail, /__proto__/);
+  assert.equal(out.candidate, null);
+  assert.equal(Object.getPrototypeOf(request.intent), Object.prototype);
+});
+
 test("ordinary portable authored intent remains unchanged and produces the same candidate", () => {
   const request = clone(fixture);
   request.request_id = "interface-portable-source-control";
