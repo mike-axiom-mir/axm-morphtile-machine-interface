@@ -13,19 +13,11 @@ test("preserves the original view-only candidate when no placement is requested"
   assert.equal(out.warnings[0].code, "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL");
 });
 
-test("emits view.set plus presentation.set without copying canonical or session state", () => {
+test("emits view.set plus presentation.set without copying top-level canonical or session state", () => {
   const out = run({
     ...placementRequest,
     canonical_state: { secret_counter_snapshot: 424242 },
-    session_state: { secret_session_marker: "SESSION_ONLY_SENTINEL" },
-    intent: {
-      ...placementRequest.intent,
-      placement: {
-        ...placementRequest.intent.placement,
-        canonical_state: { secret_counter_snapshot: 424242 },
-        session_state: { secret_session_marker: "SESSION_ONLY_SENTINEL" }
-      }
-    }
+    session_state: { secret_session_marker: "SESSION_ONLY_SENTINEL" }
   });
   assert.equal(out.status, "CANDIDATE");
   assert.equal(out.candidate.schema, "morphtile.interface-operations/v0.4");
@@ -45,4 +37,44 @@ test("holds invalid presentation descriptors instead of widening the MorphTile c
   assert.equal(out.status, "HOLD");
   assert.equal(out.holds[0].code, "HOLD_INVALID_PRESENTATION_PLACEMENT");
   assert.match(out.holds[0].detail, /placement\.mode/);
+});
+
+test("holds unknown placement fields instead of silently rewriting caller intent", () => {
+  const out = run({
+    ...placementRequest,
+    request_id: "interface-placement-typo-held",
+    intent: {
+      ...placementRequest.intent,
+      placement: {
+        mode: "docked",
+        dock: "right",
+        prefered_size: [360, 480],
+        user_adjustable: true
+      }
+    }
+  });
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INVALID_PRESENTATION_PLACEMENT");
+  assert.match(out.holds[0].detail, /prefered_size/);
+  assert.equal(out.candidate, null);
+});
+
+test("holds authority snapshots nested inside placement instead of silently dropping them", () => {
+  const out = run({
+    ...placementRequest,
+    request_id: "interface-placement-authority-held",
+    intent: {
+      ...placementRequest.intent,
+      placement: {
+        ...placementRequest.intent.placement,
+        canonical_state: { secret_counter_snapshot: 424242 },
+        session_state: { secret_session_marker: "SESSION_ONLY_SENTINEL" }
+      }
+    }
+  });
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INVALID_PRESENTATION_PLACEMENT");
+  assert.match(out.holds[0].detail, /canonical_state/);
+  assert.match(out.holds[0].detail, /session_state/);
+  assert.equal(out.candidate, null);
 });
