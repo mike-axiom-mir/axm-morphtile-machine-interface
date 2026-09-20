@@ -31,6 +31,66 @@ test("request intent accessor HOLDs before caller code executes", () => {
   assert.equal(out.candidate, null);
 });
 
+test("proxied authored intent HOLDs before reflective Proxy traps execute", () => {
+  const request = clone(fixture);
+  request.request_id = "interface-intent-proxy";
+  let calls = 0;
+  request.intent = new Proxy(request.intent, {
+    getPrototypeOf() {
+      calls += 1;
+      throw new Error("intent proxy getPrototypeOf trap executed");
+    },
+    ownKeys() {
+      calls += 1;
+      throw new Error("intent proxy ownKeys trap executed");
+    },
+    getOwnPropertyDescriptor() {
+      calls += 1;
+      throw new Error("intent proxy getOwnPropertyDescriptor trap executed");
+    }
+  });
+
+  const out = run(request);
+
+  assert.equal(calls, 0, "Interface must reject a proxied intent before any reflective Proxy trap executes");
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INTERFACE_INTENT_NONPORTABLE_VALUE");
+  assert.match(out.holds[0].detail, /Proxy/);
+  assert.equal(out.candidate, null);
+});
+
+test("nested proxied authored placement HOLDs before reflective Proxy traps execute", () => {
+  const request = clone(fixture);
+  request.request_id = "interface-placement-proxy";
+  let calls = 0;
+  request.intent.placement = new Proxy(
+    { mode: "docked", dock: "right", user_adjustable: false },
+    {
+      getPrototypeOf() {
+        calls += 1;
+        throw new Error("placement proxy getPrototypeOf trap executed");
+      },
+      ownKeys() {
+        calls += 1;
+        throw new Error("placement proxy ownKeys trap executed");
+      },
+      getOwnPropertyDescriptor() {
+        calls += 1;
+        throw new Error("placement proxy getOwnPropertyDescriptor trap executed");
+      }
+    }
+  );
+
+  const out = run(request);
+
+  assert.equal(calls, 0, "Interface must reject nested Proxy values before any reflective Proxy trap executes");
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INTERFACE_INTENT_NONPORTABLE_VALUE");
+  assert.match(out.holds[0].detail, /intent\.placement/);
+  assert.match(out.holds[0].detail, /Proxy/);
+  assert.equal(out.candidate, null);
+});
+
 test("cyclic authored intent HOLDs without transport coercion", () => {
   const request = clone(fixture);
   request.request_id = "interface-intent-cycle";
