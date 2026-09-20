@@ -28,7 +28,7 @@ function placementRequest(requestId, placement) {
   return {
     envelope_version: "0.1",
     request_id: requestId,
-    goal: "Prove authored presentation matter stays canonical while runtime host limits HOLD visibly",
+    goal: "Prove authored presentation matter stays canonical while runtime host limits remain bounded",
     intent: {
       tile_path: "mt_tower",
       title: "Presentation proof",
@@ -94,6 +94,42 @@ test("unsupported host presentation modes HOLD without rewriting portable presen
   assert.equal(MT.structHash(ws.live), committedHash, "host capability checks must not mutate canonical matter");
   const html = MT.vnodeToHTML(MT.compilePanel(ws.live, host).root);
   assert.match(html, /HOLD_UNSUPPORTED_PRESENTATION/);
+
+  const rollback = MT.rollback(ws, receipt.rollback_token);
+  assert.ok(rollback.ok && rollback.exact);
+  assert.equal(MT.structHash(ws.live), before);
+});
+
+test("session placement cannot override a machine-authored non-adjustable descriptor", { skip: !corePath }, () => {
+  assertPinnedRuntime();
+  const MT = require(path.resolve(corePath));
+  const ws = MT.createWorkspace(MT.seedWorld());
+  const before = MT.structHash(ws.live);
+  const out = run(placementRequest("non-adjustable-dock", {
+    mode: "docked",
+    dock: "right",
+    preferred_size: [360, 480],
+    preferred_position: [0, 0],
+    user_adjustable: false
+  }));
+
+  assert.equal(out.status, "CANDIDATE");
+  const receipt = commitCandidate(MT, ws, out);
+  const committedHash = MT.structHash(ws.live);
+  const host = {
+    session_presentations: {
+      mt_tower: { dock: "left", preferred_position: [24, 12] }
+    }
+  };
+  const resolved = MT.resolvePresentation(ws.live, "mt_tower", host);
+  assert.equal(resolved.status, "READY");
+  assert.equal(resolved.session_applied, false);
+  assert.equal(resolved.resolved.dock, "right");
+  assert.deepEqual(resolved.resolved.preferred_position, [0, 0]);
+  assert.equal(MT.structHash(ws.live), committedHash, "ignored session placement must not mutate canonical matter");
+  const html = MT.vnodeToHTML(MT.compilePanel(ws.live, host).root);
+  assert.match(html, /mt-p-docked mt-dock-right/);
+  assert.doesNotMatch(html, /session adjusted/);
 
   const rollback = MT.rollback(ws, receipt.rollback_token);
   assert.ok(rollback.ok && rollback.exact);
