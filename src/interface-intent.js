@@ -33,13 +33,15 @@ const ELEMENT_FIELDS = Object.freeze({
   action: Object.freeze(["kind", "binding", "label"]),
   row: Object.freeze(["kind", "children"]),
   group: Object.freeze(["kind", "children"]),
-  when: Object.freeze(["kind", "binding", "children"])
+  when: Object.freeze(["kind", "binding", "children"]),
+  repeat: Object.freeze(["kind", "binding", "step", "max", "children"])
 });
 const TILE_ID = /^[A-Za-z0-9_-]+$/;
 const TILE_PATH = /^[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/;
 const ARRAY_INDEX = /^(0|[1-9][0-9]*)$/;
 const MAX_LAYOUT_NODES = 64;
 const MAX_LAYOUT_DEPTH = 6;
+const MAX_REPEAT_ITEMS = 16;
 
 class InterfaceIntentError extends Error {
   constructor(code, message) {
@@ -158,20 +160,20 @@ function normalizeElements(value, depth, state) {
     throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENTS_INVALID", "interface element lists must be non-empty arrays when supplied");
   }
   if (atDepth > MAX_LAYOUT_DEPTH) {
-    throw new InterfaceIntentError("HOLD_INTERFACE_LAYOUT_TOO_DEEP", "nested row/group/when layout may be at most " + MAX_LAYOUT_DEPTH + " levels deep");
+    throw new InterfaceIntentError("HOLD_INTERFACE_LAYOUT_TOO_DEEP", "nested row/group/when/repeat layout may be at most " + MAX_LAYOUT_DEPTH + " levels deep");
   }
 
   return value.map((element, index) => {
     const at = "intent.elements" + (atDepth ? " nested" : "") + "[" + index + "]";
     budget.count += 1;
     if (budget.count > MAX_LAYOUT_NODES) {
-      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENTS_INVALID", "interface layout may contain at most " + MAX_LAYOUT_NODES + " total nodes");
+      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENTS_INVALID", "interface layout may contain at most " + MAX_LAYOUT_NODES + " total authored nodes");
     }
     if (!isPlainObject(element)) {
       throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + " must be an object");
     }
     if (typeof element.kind !== "string" || !Object.prototype.hasOwnProperty.call(ELEMENT_FIELDS, element.kind)) {
-      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".kind must be text|readout|meter|control|action|row|group|when");
+      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".kind must be text|readout|meter|control|action|row|group|when|repeat");
     }
     const allowed = ELEMENT_FIELDS[element.kind];
     const unknown = Object.keys(element).filter((key) => !allowed.includes(key)).sort();
@@ -187,15 +189,28 @@ function normalizeElements(value, depth, state) {
       }
       return { kind: "text", text: element.text };
     }
-    if (element.kind === "row" || element.kind === "group" || element.kind === "when") {
+    if (element.kind === "row" || element.kind === "group" || element.kind === "when" || element.kind === "repeat") {
       if (!Array.isArray(element.children) || element.children.length === 0) {
         throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".children must be a non-empty array");
       }
-      if (element.kind === "when" && typeof element.binding !== "string") {
+      if ((element.kind === "when" || element.kind === "repeat") && typeof element.binding !== "string") {
         throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".binding must be a string");
+      }
+      if (element.kind === "repeat") {
+        if (typeof element.step !== "number" || !Number.isFinite(element.step) || element.step <= 0) {
+          throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".step must be a positive finite number");
+        }
+        if (!Number.isInteger(element.max) || element.max < 1 || element.max > MAX_REPEAT_ITEMS) {
+          throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".max must be an integer from 1 through " + MAX_REPEAT_ITEMS);
+        }
       }
       const normalized = { kind: element.kind, children: normalizeElements(element.children, atDepth + 1, budget) };
       if (element.kind === "when") normalized.binding = element.binding;
+      if (element.kind === "repeat") {
+        normalized.binding = element.binding;
+        normalized.step = element.step;
+        normalized.max = element.max;
+      }
       return normalized;
     }
     if (typeof element.binding !== "string") {
@@ -225,6 +240,21 @@ function normalizeElements(value, depth, state) {
   });
 }
 
+function expandedLayoutNodeCount(elements) {
+  if (!elements) return 0;
+  const countNode = (element) => {
+    if (element.kind === "row" || element.kind === "group" || element.kind === "when") {
+      return 1 + element.children.reduce((sum, child) => sum + countNode(child), 0);
+    }
+    if (element.kind === "repeat") {
+      const body = element.children.reduce((sum, child) => sum + countNode(child), 0);
+      return 1 + element.max * body;
+    }
+    return 1;
+  };
+  return elements.reduce((sum, element) => sum + countNode(element), 0);
+}
+
 function normalizeInterfaceIntent(intent) {
   if (isProxy(intent)) {
     throw sourceIntegrityError("intent", "Proxy objects are not accepted because reflective inspection could execute caller code");
@@ -249,6 +279,12 @@ function normalizeInterfaceIntent(intent) {
   }
 
   const elements = normalizeElements(authored.elements);
+  if (elements !== undefined && expandedLayoutNodeCount(elements) > MAX_LAYOUT_NODES) {
+    throw new InterfaceIntentError(
+      "HOLD_INTERFACE_REPEAT_EXPANSION_TOO_LARGE",
+      "worst-case expanded interface layout may contain at most " + MAX_LAYOUT_NODES + " nodes"
+    );
+  }
   if (elements !== undefined && LEGACY_CONTENT_FIELDS.some((field) => authored[field] !== undefined)) {
     throw new InterfaceIntentError(
       "HOLD_INTERFACE_CONTENT_AMBIGUOUS",
@@ -291,8 +327,10 @@ module.exports = {
   TILE_PATH,
   MAX_LAYOUT_NODES,
   MAX_LAYOUT_DEPTH,
+  MAX_REPEAT_ITEMS,
   InterfaceIntentError,
   copyPortableIntentValue,
   normalizeElements,
+  expandedLayoutNodeCount,
   normalizeInterfaceIntent
 };
