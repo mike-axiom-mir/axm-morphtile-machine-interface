@@ -45,10 +45,19 @@ test("generated meter reads canonical MorphTile state through the real view comp
   assert.ok(committed.ok);
 
   const committedHash = MT.structHash(ws.live);
-  const html = MT.vnodeToHTML(MT.compilePanel(ws.live).root);
-  assert.match(html, /v-meter/);
-  assert.match(html, /data-bind="mt_tower\|beacon"/);
+  const offHtml = MT.vnodeToHTML(MT.compilePanel(ws.live).root);
+  assert.match(offHtml, /v-meter/);
+  assert.match(offHtml, /Brightness/);
+  assert.match(offHtml, /width:0\.0%/);
   assert.equal(MT.structHash(ws.live), committedHash, "compiling a meter must not mutate canonical matter");
+
+  MT.act(ws, { do: "signal", tile: "mt_tower", name: "toggle" });
+  assert.equal(MT.readVars(ws.live, "mt_tower", 0).beacon, 1);
+  const onHtml = MT.vnodeToHTML(MT.compilePanel(ws.live).root);
+  assert.match(onHtml, /width:100\.0%/, "meter presentation follows the canonical variable at render time");
+
+  MT.act(ws, { do: "signal", tile: "mt_tower", name: "toggle" });
+  assert.equal(MT.readVars(ws.live, "mt_tower", 0).beacon, 0, "restore runtime state before structural rollback");
 
   const rollback = MT.rollback(ws, committed.receipt.rollback_token);
   assert.ok(rollback.ok && rollback.exact);
