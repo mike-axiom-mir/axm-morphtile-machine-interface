@@ -28,7 +28,8 @@ jobs:
           node-version: 20
       - id: pins
         shell: bash
-        run: echo "morphtile=$(node -p \"require('./machine/machine.json').tested_against.commit\")" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "morphtile=$(node -p 'require("./machine/machine.json").tested_against.commit')" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
         with:
           repository: mike-axiom-mir/axm-morphtile
@@ -52,8 +53,8 @@ jobs:
       - id: pins
         shell: bash
         run: |
-          echo "morphtile=$(node -p \"require('./machine/machine.json').tested_against.commit\")" >> "$GITHUB_OUTPUT"
-          echo "assembly=$(node -p \"require('./machine/fixtures/integration-sources.json').assembly.commit\")" >> "$GITHUB_OUTPUT"
+          echo "morphtile=$(node -p 'require("./machine/machine.json").tested_against.commit')" >> "$GITHUB_OUTPUT"
+          echo "assembly=$(node -p 'require("./machine/fixtures/integration-sources.json").assembly.commit')" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
         with:
           repository: mike-axiom-mir/axm-morphtile-machine-assembly
