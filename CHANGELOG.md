@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.1 — 2026-09-20
+
+- Corrected Interface Machine target normalization to accept canonical MorphTile paths such as `mt_shell/mt_room/mt_panel`, not only one-segment tile IDs.
+- Applied the same full-path rule to tile presentation anchors while still rejecting leading, trailing, empty, traversal-like and whitespace-containing segments.
+- Kept the v0.5 candidate schemas unchanged; this is a compatibility correction to machine-side request normalization, not a new MorphTile representation.
+- Added pinned runtime evidence that `view.set` and `presentation.set` target a real nested tile, resolve a nested tile anchor, compile through the real panel runtime and roll back exactly.
+
 ## 0.5.0 — 2026-09-20
 
 - Added MorphTile-native nested relative layout through `row` and `group` elements with recursive `children`.
