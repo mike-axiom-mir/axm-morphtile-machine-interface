@@ -24,9 +24,7 @@ test("placement candidate commits and rolls back through the pinned MorphTile tr
         dock: "right",
         preferred_size: [360, 480],
         preferred_position: [0, 0],
-        user_adjustable: true,
-        canonical_state: { secret_counter_snapshot: 424242 },
-        session_state: { secret_session_marker: "SESSION_ONLY_SENTINEL" }
+        user_adjustable: true
       }
     },
     provenance: { caller: "pinned-integration-test" }
