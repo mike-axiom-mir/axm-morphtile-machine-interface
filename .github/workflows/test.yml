@@ -36,3 +36,30 @@ jobs:
         env:
           MORPHTILE_CORE: ../morphtile/core/morphtile.js
           MORPHTILE_COMMIT: ef2b3c6986aa1a333247feffc43a8443f17239d0
+
+  assembly-receiver-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: machine
+      - uses: actions/checkout@v4
+        with:
+          repository: mike-axiom-mir/axm-morphtile-machine-assembly
+          ref: 398dc56b445f328b103381a7dc71f7552d23d000
+          path: assembly
+      - uses: actions/checkout@v4
+        with:
+          repository: mike-axiom-mir/axm-morphtile
+          ref: ef2b3c6986aa1a333247feffc43a8443f17239d0
+          path: morphtile
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node --test test/assembly-dependency.integration.test.js
+        working-directory: machine
+        env:
+          MORPHTILE_ASSEMBLY: ../assembly/src
+          MORPHTILE_ASSEMBLY_COMMIT: 398dc56b445f328b103381a7dc71f7552d23d000
+          MORPHTILE_CORE: ../morphtile/core/morphtile.js
+          MORPHTILE_COMMIT: ef2b3c6986aa1a333247feffc43a8443f17239d0

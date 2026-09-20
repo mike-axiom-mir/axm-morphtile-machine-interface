@@ -2,7 +2,7 @@
 
 const { assertRequest, result } = require("./envelope");
 const { TILE_PATH, normalizeInterfaceIntent } = require("./interface-intent");
-const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.1" };
+const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.2" };
 const PRESENTATION_MODES = new Set(["screen", "docked", "floating", "fullscreen", "embedded", "world", "tile"]);
 const DOCKS = new Set(["left", "right", "top", "bottom"]);
 const PRESENTATION_KEYS = new Set(["mode", "dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]);
@@ -59,6 +59,31 @@ function requestedBindings(intent) {
   for (const element of intent.elements || []) collect(element);
   for (const key of Object.keys(requested)) requested[key] = [...new Set(requested[key])];
   return requested;
+}
+
+function targetProofDependencies(intent, placement) {
+  const requested = requestedBindings(intent);
+  const dependencies = [{
+    id: `morphtile.interface-target-proof:${intent.tile_path}`,
+    kind: "morphtile.interface-target-proof/v0.1",
+    tile_path: intent.tile_path,
+    requires: {
+      tile_exists: true,
+      form_hints_include: ["ui_panel"],
+      readout_logic_vars: requested.readouts.slice().sort(),
+      control_param_ids: requested.controls.slice().sort(),
+      action_input_signal_socket_ids: requested.actions.slice().sort()
+    }
+  }];
+  if (placement && placement.mode === "tile" && placement.anchor !== undefined) {
+    dependencies.push({
+      id: `morphtile.presentation-anchor-proof:${placement.anchor}`,
+      kind: "morphtile.presentation-anchor-proof/v0.1",
+      anchor_path: placement.anchor,
+      requires: { tile_exists: true }
+    });
+  }
+  return dependencies;
 }
 
 function validateBindings(intent) {
@@ -155,6 +180,7 @@ function run(request) {
         holds: [{ code: "HOLD_INVALID_PRESENTATION_PLACEMENT", detail: placement.error }]
       });
     }
+    const dependencies = targetProofDependencies(intent, placement.value);
     return result(request, MACHINE, "CANDIDATE", {
       candidate: {
         schema: "morphtile.interface-operations/v0.5",
@@ -163,18 +189,21 @@ function run(request) {
           { op: "presentation.set", id: intent.tile_path, presentation: placement.value }
         ]
       },
+      dependencies,
       evidence: [{
         kind: "AUTHORITY",
         status: "PASS",
-        check: "candidate carries only validated authored interface text, bounded nested relative layout, declared symbolic bindings and presentation descriptors; no copied canonical or session state"
+        check: "candidate carries only validated authored interface text, bounded nested relative layout, declared symbolic bindings and presentation descriptors; no copied canonical or session state; target-local and runtime-relevant anchor proof remain explicit dependencies"
       }],
       warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
     });
   }
 
+  const dependencies = targetProofDependencies(intent);
   return result(request, MACHINE, "CANDIDATE", {
     candidate: { schema: "morphtile.view-operation/v0.5", operation: viewOperation },
-    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains validated authored interface text plus bounded nested relative layout and declared symbolic bindings with no copied state values" }],
+    dependencies,
+    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains validated authored interface text plus bounded nested relative layout and declared symbolic bindings with no copied state values; target-local proof remains an explicit dependency" }],
     warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
   });
 }
@@ -187,6 +216,7 @@ module.exports = {
   normalizePlacement,
   normalizeBindings,
   requestedBindings,
+  targetProofDependencies,
   validateBindings,
   nodeForElement,
   buildView,
