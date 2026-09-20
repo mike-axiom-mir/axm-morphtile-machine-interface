@@ -14,6 +14,7 @@ Important creation-side rules:
 
 - tile and anchor references must match MorphTile-compatible symbolic tile IDs;
 - readout/action/control names must be explicitly declared symbolic bindings, including when nested inside row/group layout;
+- every declared symbolic binding must be consumed by the authored interface; extra declarations HOLD instead of disappearing;
 - orphan labels or binding declarations HOLD instead of disappearing;
 - authored text and ordered layout are preserved deterministically;
 - explicit empty titles/labels remain authored empty strings instead of being replaced by defaults;
@@ -28,7 +29,7 @@ Important creation-side rules:
 4. **What it produces:** `morphtile.view-operation/v0.5`, or `morphtile.interface-operations/v0.5` containing `view.set` + `presentation.set` when placement is requested.
 5. **MorphTile interaction:** output goes through MorphTile's public contracts and clone → plan → commit → receipt → rollback path. MorphTile does not depend on this repository.
 6. **Authority boundary:** placement normalization copies only the public presentation descriptor fields. Canonical-state and session-state snapshots are not copied into the candidate.
-7. **Interactive binding boundary:** readout, action and parameter-control names must be symbolic names explicitly declared in `intent.bindings.readouts`, `intent.bindings.actions` or `intent.bindings.controls`. Missing, undeclared, malformed, or authority-shaped binding data returns `HOLD_INVALID_INTERFACE_BINDING`. Parameter controls emit MorphTile's native `{ control: "<param-id>" }` view node and never copy the parameter value.
+7. **Interactive binding boundary:** readout, action and parameter-control names must be symbolic names explicitly declared in `intent.bindings.readouts`, `intent.bindings.actions` or `intent.bindings.controls`. Missing, undeclared, malformed, unused, or authority-shaped binding data returns `HOLD_INVALID_INTERFACE_BINDING`. Parameter controls emit MorphTile's native `{ control: "<param-id>" }` view node and never copy the parameter value.
 8. **Layout boundary:** row/group are structural presentation containers only. They do not create state, permissions, host windows, absolute pixels, or action authority.
 9. **When placement cannot be satisfied:** invalid or unknown presentation descriptors return `HOLD_INVALID_PRESENTATION_PLACEMENT`.
 
@@ -48,8 +49,8 @@ Node 18 or later; zero runtime dependencies; no secrets required for the local p
 
 ## Truth boundary
 
-- IMPLEMENTED: fail-closed interface intent normalization, atomic ordered/nested relative view generation, legacy view candidates, recursive symbolic binding validation, native MorphTile parameter-control nodes, authored text + interactive composition, placement normalization and `presentation.set` candidate output.
-- TESTED LOCALLY/CI WHEN GREEN: unknown/malformed intent HOLDs, orphan intent HOLDs, nested depth/node budgets, exact authored order/text preservation, recursive symbolic binding validation, descriptor validation and structural authority boundaries.
+- IMPLEMENTED: fail-closed interface intent normalization, atomic ordered/nested relative view generation, legacy view candidates, recursive symbolic binding validation with exact consumption, native MorphTile parameter-control nodes, authored text + interactive composition, placement normalization and `presentation.set` candidate output.
+- TESTED LOCALLY/CI WHEN GREEN: unknown/malformed intent HOLDs, orphan/unused binding HOLDs, nested depth/node budgets, exact authored order/text preservation, recursive symbolic binding validation, descriptor validation and structural authority boundaries.
 - PINNED INTEGRATION HARNESS: executes ordered/nested view and placement behavior through real MorphTile clone → plan → commit → receipt → rollback, proves native row/group materialization through `compilePanel`, and proves canonical parameter values remain unchanged by interface generation.
 - COMPATIBILITY TARGET: exact MorphTile v0.4 snapshot `ef2b3c6986aa1a333247feffc43a8443f17239d0`.
 - EXPERIMENTAL: envelope v0.1 and candidate schemas in this repository.
