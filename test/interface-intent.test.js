@@ -7,8 +7,8 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-test("machine v0.4 fails closed on malformed and unknown top-level interface intent", () => {
-  assert.equal(MACHINE.version, "0.4.0");
+test("machine v0.5 fails closed on malformed and unknown top-level interface intent", () => {
+  assert.equal(MACHINE.version, "0.5.0");
 
   for (const intent of ["panel", [], 7, null]) {
     const out = run({ ...fixture, request_id: "interface-intent-invalid-" + String(intent), intent });
