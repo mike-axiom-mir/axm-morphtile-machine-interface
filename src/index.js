@@ -67,12 +67,19 @@ function validateBindings(intent) {
   if (!wantsBindings) return { ok: true, value: { readouts: [], actions: [], controls: [] } };
   const bindings = normalizeBindings(intent.bindings);
   if (!bindings.ok) return bindings;
+
+  // First prove every authored interactive target is declared. Only after the
+  // requested contract is complete do we report declarations that have no use.
+  // This keeps the most direct caller error stable when both defects exist.
   for (const key of ["readouts", "actions", "controls"]) {
     const singular = key === "readouts" ? "readout" : key === "actions" ? "action" : "control";
     for (const name of requested[key]) {
       if (typeof name !== "string" || !SYMBOLIC_BINDING.test(name)) return { ok: false, error: `intent ${singular} binding must be a symbolic name` };
       if (!bindings.value[key].includes(name)) return { ok: false, error: `${singular} ${name} is not declared in intent.bindings.${key}` };
     }
+  }
+
+  for (const key of ["readouts", "actions", "controls"]) {
     const unused = bindings.value[key].filter((name) => !requested[key].includes(name));
     if (unused.length) {
       return {
