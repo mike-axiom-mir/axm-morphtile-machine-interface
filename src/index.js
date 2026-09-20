@@ -1,7 +1,7 @@
 "use strict";
 
 const { assertRequest, result } = require("./envelope");
-const { TILE_PATH, normalizeInterfaceIntent } = require("./interface-intent");
+const { InterfaceIntentError, TILE_PATH, normalizeInterfaceIntent } = require("./interface-intent");
 const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.2" };
 const PRESENTATION_MODES = new Set(["screen", "docked", "floating", "fullscreen", "embedded", "world", "tile"]);
 const DOCKS = new Set(["left", "right", "top", "bottom"]);
@@ -151,12 +151,24 @@ function buildView(intent) {
   };
 }
 
+function authoredIntentFromRequest(request) {
+  const descriptor = Object.getOwnPropertyDescriptor(request, "intent");
+  if (!descriptor) return undefined;
+  if (descriptor.get || descriptor.set || !Object.prototype.hasOwnProperty.call(descriptor, "value") || !descriptor.enumerable) {
+    throw new InterfaceIntentError(
+      "HOLD_INTERFACE_INTENT_NONPORTABLE_VALUE",
+      "request.intent must be an enumerable data property; accessors and hidden transport fields are not accepted"
+    );
+  }
+  return descriptor.value;
+}
+
 function run(request) {
   assertRequest(request);
 
   let intent;
   try {
-    intent = normalizeInterfaceIntent(request.intent);
+    intent = normalizeInterfaceIntent(authoredIntentFromRequest(request));
   } catch (error) {
     return result(request, MACHINE, "HOLD", {
       holds: [{ code: error && error.code ? error.code : "HOLD_INTERFACE_INTENT_INVALID", detail: error && error.message ? error.message : String(error) }]
