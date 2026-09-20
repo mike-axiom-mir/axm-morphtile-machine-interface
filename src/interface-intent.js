@@ -31,7 +31,7 @@ const ELEMENT_FIELDS = Object.freeze({
   meter: Object.freeze(["kind", "binding", "min", "max", "label"]),
   control: Object.freeze(["kind", "binding", "label"]),
   action: Object.freeze(["kind", "binding", "label"]),
-  tile: Object.freeze(["kind", "tile_id"]),
+  tile: Object.freeze(["kind", "tile_id", "tile_path"]),
   row: Object.freeze(["kind", "children"]),
   group: Object.freeze(["kind", "children"]),
   when: Object.freeze(["kind", "binding", "children"]),
@@ -153,7 +153,7 @@ function assertString(value, field) {
   }
 }
 
-function normalizeElements(value, depth, state) {
+function normalizeElements(value, depth, state, ownerRoot) {
   if (value === undefined) return undefined;
   const atDepth = depth === undefined ? 0 : depth;
   const budget = state || { count: 0 };
@@ -191,10 +191,28 @@ function normalizeElements(value, depth, state) {
       return { kind: "text", text: element.text };
     }
     if (element.kind === "tile") {
-      if (typeof element.tile_id !== "string" || !TILE_ID.test(element.tile_id)) {
-        throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".tile_id must be one local MorphTile id matching [A-Za-z0-9_-]+");
+      const hasId = element.tile_id !== undefined;
+      const hasPath = element.tile_path !== undefined;
+      if (hasId === hasPath) {
+        throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + " must provide exactly one of .tile_id or .tile_path");
       }
-      return { kind: "tile", tile_id: element.tile_id };
+      if (hasId) {
+        if (typeof element.tile_id !== "string" || !TILE_ID.test(element.tile_id)) {
+          throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".tile_id must be one local MorphTile id matching [A-Za-z0-9_-]+");
+        }
+        return { kind: "tile", tile_id: element.tile_id };
+      }
+      if (typeof element.tile_path !== "string" || !TILE_PATH.test(element.tile_path) || !element.tile_path.includes("/")) {
+        throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".tile_path must be a canonical multi-segment MorphTile path");
+      }
+      const pathRoot = element.tile_path.split("/")[0];
+      if (ownerRoot !== undefined && pathRoot !== ownerRoot) {
+        throw new InterfaceIntentError(
+          "HOLD_INTERFACE_TILE_SCOPE",
+          at + ".tile_path must stay inside the interface target's top-level MorphTile root; cross-root composition requires a separate authority contract"
+        );
+      }
+      return { kind: "tile", tile_path: element.tile_path };
     }
     if (element.kind === "row" || element.kind === "group" || element.kind === "when" || element.kind === "repeat") {
       if (!Array.isArray(element.children) || element.children.length === 0) {
@@ -211,7 +229,7 @@ function normalizeElements(value, depth, state) {
           throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".max must be an integer from 1 through " + MAX_REPEAT_ITEMS);
         }
       }
-      const normalized = { kind: element.kind, children: normalizeElements(element.children, atDepth + 1, budget) };
+      const normalized = { kind: element.kind, children: normalizeElements(element.children, atDepth + 1, budget, ownerRoot) };
       if (element.kind === "when") normalized.binding = element.binding;
       if (element.kind === "repeat") {
         normalized.binding = element.binding;
@@ -285,7 +303,8 @@ function normalizeInterfaceIntent(intent) {
     assertString(authored[field], "intent." + field);
   }
 
-  const elements = normalizeElements(authored.elements);
+  const ownerRoot = authored.tile_path ? authored.tile_path.split("/")[0] : undefined;
+  const elements = normalizeElements(authored.elements, undefined, undefined, ownerRoot);
   if (elements !== undefined && expandedLayoutNodeCount(elements) > MAX_LAYOUT_NODES) {
     throw new InterfaceIntentError(
       "HOLD_INTERFACE_REPEAT_EXPANSION_TOO_LARGE",

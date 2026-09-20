@@ -1,56 +1,56 @@
 # Status
 
-- Machine version: 0.5.5
+- Machine version: 0.5.6
 - State: CANDIDATE — EXACT-HEAD CI + INDEPENDENT VERIFICATION REQUIRED
 - Local tests: `npm test`
 - MorphTile target: v0.4 at `2bdf8eade1376055473b9cc1b11734b72a5566e5`
-- Assembly receiver target: `e62e299f18588ef0146b7db3a864dcad8c06c125`
+- Assembly receiver target: `1a28d546cfa986c00b44abe444ea7b2dd4b56283`
 - Envelope: provisional v0.1
 - Visual proof: none
 
 ## Implemented in this candidate
 
-- Interface Machine can author bounded same-container tile-owned composition with `{ kind: "tile", tile_id: "mt_core" }`, compiling directly to MorphTile's native `{ tile: "mt_core" }` view node.
-- `tile_id` is deliberately one local MorphTile id only (`[A-Za-z0-9_-]+`). Slash-separated/full-path addressing HOLDs rather than silently widening this producer into cross-container authority.
-- Local tile references carry no target state, target action bindings or bridge authority. The referenced tile remains owner of its own view/state/actions.
-- Missing local targets are not fabricated: current pinned MorphTile renders them as visible inert `v-missing` matter during read-only view compilation.
-- Interface Machine still generates complete ordered tile-owned `view.body` matter atomically through `intent.elements`, with MorphTile-native row/group, bounded `when`, bounded `repeat`, bounded meter, controls and safe symbolic actions.
-- Interactive/state-read descendants require exact symbolic declarations in `intent.bindings`; requested-but-undeclared and declared-but-unused names both HOLD.
-- Every emitted interface still carries a stable `morphtile.interface-target-proof/v0.1` dependency for the interface's actual owning target. Local embedded tiles do not inherit or duplicate that parent proof because composition names existing view matter only.
-- Tile-mode anchors carry the separate stable `morphtile.presentation-anchor-proof/v0.1` existence dependency.
-- Authored Interface intent/envelope data still crosses the descriptor-safe portable-data boundary before semantic fields are read; accessors, hidden transport hooks, nonportable values and Proxies fail closed.
-- Current integration evidence targets MorphTile `2bdf8eade1376055473b9cc1b11734b72a5566e5` and Assembly `e62e299f18588ef0146b7db3a864dcad8c06c125`.
+- Interface Machine still supports bounded local composition with `{ kind: "tile", tile_id: "mt_core" }`.
+- It now also supports an explicit canonical multi-segment same-root path with `{ kind: "tile", tile_path: "mt_shell/mt_inner" }` when the embedded path shares the interface target's top-level MorphTile root.
+- Same-root paths compile to MorphTile's native absolute-looking `{"tile":"/mt_shell/mt_inner"}` form so runtime resolution is exact rather than relying on the core's root-relative fallback order.
+- Cross-root paths return `HOLD_INTERFACE_TILE_SCOPE`; they are not treated as ordinary composition and no bridge or permission is synthesized.
+- A tile element must provide exactly one of `tile_id` or `tile_path`. Local IDs remain one segment; explicit paths must be canonical multi-segment MorphTile paths.
+- Embedded tile references carry no copied target state, target actions, permissions, parent bindings, or bridge state. The referenced tile remains owner of its own view/state/runtime action bindings.
+- Interface generation remains bounded to existing ordered/nested row/group, meter, conditional, repeat, control and safe symbolic action machinery.
+- Existing source-integrity, target-proof, presentation and binding boundaries remain unchanged.
+- Assembly receiver evidence is refreshed to current integrated Assembly main `1a28d546cfa986c00b44abe444ea7b2dd4b56283`.
 
 ## Why this belongs in Interface Machine
 
-MorphTile core already contains the universal native `{ tile: ... }` view primitive, same-container resolution, recursion/missing-target safety, and read-only compilation. The creation gap was producer vocabulary: Interface Machine could compose text/state/control primitives but could not ask for ordinary tile-owned view matter. Therefore this candidate adds only the smallest bounded authoring form and compiles into existing core semantics. No MorphTile core change, private evaluator, duplicate state representation, or new bridge behavior is required.
+Current MorphTile core already contains the universal `{ tile: ... }` view primitive, accepts explicit path-like tile references, performs runtime resolution, owns recursion/missing-target safety, and compiles embedded views read-only. The remaining gap was producer vocabulary and scope policy. Interface Machine therefore adds only bounded same-root authoring and compiles into existing core semantics. No new core primitive, duplicate evaluator, duplicate state surface, or permissionless bridge is introduced.
 
 ## Evidence required before integration
 
-- full Interface Machine unit suite on the exact candidate head;
+- exact-head unit suite;
 - pinned MorphTile integration against `machine.json.tested_against.commit`;
-- positive runtime proof that `{ kind: "tile", tile_id: "mt_core" }` commits through clone → plan → commit, resolves through real `compilePanel`, renders existing `mt_core` matter and leaves canonical structure unchanged while rendering;
-- negative runtime proof that a missing local tile id stays visibly inert rather than fabricating matter, followed by exact rollback;
-- validation proof that empty, slash-separated, absolute-looking and whitespace-bearing tile ids HOLD;
-- authority proof that extra fields such as copied `state_value` HOLD instead of being retained;
-- preserved existing action/control/state-read authority regressions;
-- Assembly receiver integration against exact `e62e299f18588ef0146b7db3a864dcad8c06c125`;
+- runtime proof that an explicit same-root path resolves the exact nested target through real clone → plan → commit → compilePanel → rollback;
+- proof that embedded target view ownership remains unchanged and rendering is structurally read-only;
+- validation proof that empty, single-segment, leading-slash, malformed and whitespace-bearing explicit paths HOLD;
+- proof that cross-root paths HOLD with `HOLD_INTERFACE_TILE_SCOPE`;
+- proof that specifying both local id and explicit path HOLDs;
+- preserved local-tile, recursion, action/control/state-read and source-integrity regressions;
+- Assembly receiver integration against exact `1a28d546cfa986c00b44abe444ea7b2dd4b56283`;
 - independent Verification of the exact final PR head before Director integration.
 
-Compatibility is earned only when the exact updated candidate head is green and independent Verification has replayed the claimed boundary.
+Compatibility is earned only when the exact candidate head is green and independent Verification has replayed the claimed boundary.
 
 ## Reusable rules learned
 
-- If MorphTile core already provides a universal composition primitive, Interface Machine should expose the smallest authoring vocabulary that compiles into it rather than introducing a second runtime mechanism.
-- A composition reference should name existing matter, not copy its state, actions or permissions. Ownership stays with the referenced tile.
-- Local symbolic composition and cross-container addressing are different authority surfaces. Support the local case independently when it is sufficient and proven; do not smuggle the broader path grammar into the first producer feature.
-- Missing referenced matter should remain visibly inert/fail-closed in the runtime rather than causing Interface Machine to invent target state.
-- Producer compatibility pins are evidence identities. Refresh them when a real candidate depends on the receiver/runtime relation, not as standalone activity.
+- A broader path grammar should not silently widen an existing local-reference contract. Make the broader intent explicit and bound it separately.
+- When a runtime accepts both relative/fallback and absolute-like references, a producer that knows the exact canonical path should emit the unambiguous form.
+- Same-root composition and cross-root composition are different authority surfaces. Same-root view composition can remain ordinary matter while cross-root composition stays held until a separate authority/proof contract exists.
+- Composition names existing matter; it does not copy or inherit the referenced tile's canonical state, actions, permissions or bindings.
+- Receiver pins are evidence identities and should move when a real candidate is re-proved against the newly integrated receiver.
 
 ## HELD / open
 
-- Independent Verification of the exact 0.5.5 candidate head remains required before Director integration.
-- Full-path/cross-container tile embedding remains unclaimed until its path ownership and proof semantics are separately bounded.
+- Independent Verification of exact Interface 0.5.6 head remains required before Director integration.
+- Cross-root/cross-container tile composition remains unclaimed and explicitly held.
 - Host rendering evidence and arbitrary responsive/pixel interface-layout design remain unclaimed.
 - Ambient host permissions remain unclaimed.
 - Positive host visual-quality evidence for supported presentation modes remains NOT_TESTED.
