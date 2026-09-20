@@ -106,7 +106,10 @@ function copyPortableIntentValue(value, path, seen) {
   }
 
   stack.add(value);
-  const copy = array ? new Array(arrayLength) : {};
+  // Null-prototype copies preserve authored keys such as __proto__ as data.
+  // A normal object assignment could invoke Object.prototype.__proto__ and
+  // silently turn an unknown authored field into prototype mutation.
+  const copy = array ? new Array(arrayLength) : Object.create(null);
   try {
     for (const key of ownKeys) {
       if (array && key === "length") continue;
