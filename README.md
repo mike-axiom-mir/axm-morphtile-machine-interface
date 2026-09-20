@@ -6,14 +6,16 @@ Builds candidate interface matter over canonical MorphTile matter. It emits `vie
 
 The machine fails closed on top-level interface intent it does not understand and can author a complete ordered `view.body` atomically through `intent.elements`.
 
-Supported element kinds are deliberately bounded to MorphTile-native `text`, `readout`, `control`, `action`, `row`, and `group` nodes. `row` and `group` recursively contain `children`, giving creation-time relative layout without inventing a private pixel/layout authority. Authored order is preserved at every level.
+Supported element kinds are deliberately bounded to MorphTile-native `text`, `readout`, `meter`, `control`, `action`, `row`, and `group` nodes. `row` and `group` recursively contain `children`, giving creation-time relative layout without inventing a private pixel/layout authority. Authored order is preserved at every level.
+
+A `meter` is the bounded canonical-state visualization primitive: `{ kind: "meter", binding: "energy", min: 0, max: 100, label: "Energy" }`. It compiles to MorphTile's native `{ meter: ["var", "energy"], min: 0, max: 100, label: "Energy" }`, so the rendered bar reads the real target variable at render time. The binding must be declared in `intent.bindings.readouts`; the machine carries the symbolic variable name and explicit range, never a copied state value. Ranges require finite numeric `min` and `max` with `max > min`; defaults are not invented.
 
 The layout tree is bounded to 64 total nodes and six nested container levels. Empty containers, unsupported fields, undeclared nested bindings and authority-shaped extras HOLD rather than being silently retained. Ordered and legacy body fields cannot be mixed because that would make author intent ambiguous.
 
 Important creation-side rules:
 
 - tile and anchor references must match MorphTile-compatible symbolic tile IDs;
-- readout/action/control names must be explicitly declared symbolic bindings, including when nested inside row/group layout;
+- readout/meter/action/control names must be explicitly declared symbolic bindings, including when nested inside row/group layout;
 - every declared symbolic binding must be consumed by the authored interface; extra declarations HOLD instead of disappearing;
 - orphan labels or binding declarations HOLD instead of disappearing;
 - authored text and ordered layout are preserved deterministically;
@@ -29,7 +31,7 @@ Important creation-side rules:
 4. **What it produces:** `morphtile.view-operation/v0.5`, or `morphtile.interface-operations/v0.5` containing `view.set` + `presentation.set` when placement is requested.
 5. **MorphTile interaction:** output goes through MorphTile's public contracts and clone → plan → commit → receipt → rollback path. MorphTile does not depend on this repository.
 6. **Authority boundary:** placement normalization copies only the public presentation descriptor fields. Canonical-state and session-state snapshots are not copied into the candidate.
-7. **Interactive binding boundary:** readout, action and parameter-control names must be symbolic names explicitly declared in `intent.bindings.readouts`, `intent.bindings.actions` or `intent.bindings.controls`. Missing, undeclared, malformed, unused, or authority-shaped binding data returns `HOLD_INVALID_INTERFACE_BINDING`. Parameter controls emit MorphTile's native `{ control: "<param-id>" }` view node and never copy the parameter value.
+7. **Interactive binding boundary:** readout and meter variable names, action names, and parameter-control names must be symbolic names explicitly declared in `intent.bindings.readouts`, `intent.bindings.actions` or `intent.bindings.controls`. Missing, undeclared, malformed, unused, or authority-shaped binding data returns `HOLD_INVALID_INTERFACE_BINDING`. Parameter controls emit MorphTile's native `{ control: "<param-id>" }` view node and never copy the parameter value. Meters emit MorphTile's native variable expression and never copy the variable value.
 8. **Layout boundary:** row/group are structural presentation containers only. They do not create state, permissions, host windows, absolute pixels, or action authority.
 9. **When placement cannot be satisfied:** invalid or unknown presentation descriptors return `HOLD_INVALID_PRESENTATION_PLACEMENT`.
 
@@ -49,10 +51,10 @@ Node 18 or later; zero runtime dependencies; no secrets required for the local p
 
 ## Truth boundary
 
-- IMPLEMENTED: fail-closed interface intent normalization, atomic ordered/nested relative view generation, legacy view candidates, recursive symbolic binding validation with exact consumption, native MorphTile parameter-control nodes, authored text + interactive composition, placement normalization and `presentation.set` candidate output.
-- TESTED LOCALLY/CI WHEN GREEN: unknown/malformed intent HOLDs, orphan/unused binding HOLDs, nested depth/node budgets, exact authored order/text preservation, recursive symbolic binding validation, descriptor validation and structural authority boundaries.
-- PINNED INTEGRATION HARNESS: executes ordered/nested view and placement behavior through real MorphTile clone → plan → commit → receipt → rollback, proves native row/group materialization through `compilePanel`, and proves canonical parameter values remain unchanged by interface generation.
-- COMPATIBILITY TARGET: exact MorphTile v0.4 snapshot `ef2b3c6986aa1a333247feffc43a8443f17239d0`.
+- IMPLEMENTED: fail-closed interface intent normalization, atomic ordered/nested relative view generation, bounded canonical-state meters, legacy view candidates, recursive symbolic binding validation with exact consumption, native MorphTile parameter-control nodes, authored text + interactive composition, placement normalization and `presentation.set` candidate output.
+- TESTED LOCALLY/CI WHEN GREEN: unknown/malformed intent HOLDs, orphan/unused binding HOLDs, meter range/binding HOLDs, nested depth/node budgets, exact authored order/text preservation, recursive symbolic binding validation, descriptor validation and structural authority boundaries.
+- PINNED INTEGRATION HARNESS: executes ordered/nested view, meter and placement behavior through real MorphTile clone → plan → commit → receipt → rollback, proves native row/group materialization through `compilePanel`, proves generated meters follow canonical variables at render time, and proves canonical parameter values remain unchanged by interface generation.
+- COMPATIBILITY TARGET: exact MorphTile v0.4 snapshot `429a344f7d9333bef01cf9de1c292c3af09abec2`.
 - EXPERIMENTAL: envelope v0.1 and candidate schemas in this repository.
 - NOT CLAIMED: universal proof that any caller-supplied binding declaration matches its arbitrary target, compatibility beyond the pinned MorphTile commit, host rendering quality, arbitrary responsive/pixel layout, or ambient host permissions.
 
