@@ -32,7 +32,8 @@ const ELEMENT_FIELDS = Object.freeze({
   control: Object.freeze(["kind", "binding", "label"]),
   action: Object.freeze(["kind", "binding", "label"]),
   row: Object.freeze(["kind", "children"]),
-  group: Object.freeze(["kind", "children"])
+  group: Object.freeze(["kind", "children"]),
+  when: Object.freeze(["kind", "binding", "children"])
 });
 const TILE_ID = /^[A-Za-z0-9_-]+$/;
 const TILE_PATH = /^[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/;
@@ -157,7 +158,7 @@ function normalizeElements(value, depth, state) {
     throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENTS_INVALID", "interface element lists must be non-empty arrays when supplied");
   }
   if (atDepth > MAX_LAYOUT_DEPTH) {
-    throw new InterfaceIntentError("HOLD_INTERFACE_LAYOUT_TOO_DEEP", "nested row/group layout may be at most " + MAX_LAYOUT_DEPTH + " levels deep");
+    throw new InterfaceIntentError("HOLD_INTERFACE_LAYOUT_TOO_DEEP", "nested row/group/when layout may be at most " + MAX_LAYOUT_DEPTH + " levels deep");
   }
 
   return value.map((element, index) => {
@@ -170,7 +171,7 @@ function normalizeElements(value, depth, state) {
       throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + " must be an object");
     }
     if (typeof element.kind !== "string" || !Object.prototype.hasOwnProperty.call(ELEMENT_FIELDS, element.kind)) {
-      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".kind must be text|readout|meter|control|action|row|group");
+      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".kind must be text|readout|meter|control|action|row|group|when");
     }
     const allowed = ELEMENT_FIELDS[element.kind];
     const unknown = Object.keys(element).filter((key) => !allowed.includes(key)).sort();
@@ -186,11 +187,16 @@ function normalizeElements(value, depth, state) {
       }
       return { kind: "text", text: element.text };
     }
-    if (element.kind === "row" || element.kind === "group") {
+    if (element.kind === "row" || element.kind === "group" || element.kind === "when") {
       if (!Array.isArray(element.children) || element.children.length === 0) {
         throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".children must be a non-empty array");
       }
-      return { kind: element.kind, children: normalizeElements(element.children, atDepth + 1, budget) };
+      if (element.kind === "when" && typeof element.binding !== "string") {
+        throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".binding must be a string");
+      }
+      const normalized = { kind: element.kind, children: normalizeElements(element.children, atDepth + 1, budget) };
+      if (element.kind === "when") normalized.binding = element.binding;
+      return normalized;
     }
     if (typeof element.binding !== "string") {
       throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".binding must be a string");
