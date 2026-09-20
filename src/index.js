@@ -2,7 +2,7 @@
 
 const { assertRequest, result } = require("./envelope");
 const { TILE_ID, normalizeInterfaceIntent } = require("./interface-intent");
-const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.3.0" };
+const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.4.0" };
 const PRESENTATION_MODES = new Set(["screen", "docked", "floating", "fullscreen", "embedded", "world", "tile"]);
 const DOCKS = new Set(["left", "right", "top", "bottom"]);
 const PRESENTATION_KEYS = new Set(["mode", "dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]);
@@ -45,24 +45,32 @@ function normalizeBindings(value) {
   return { ok: true, value: normalized };
 }
 
+function requestedBindings(intent) {
+  const requested = { readouts: [], actions: [], controls: [] };
+  if (intent.readout !== undefined) requested.readouts.push(intent.readout);
+  if (intent.action !== undefined) requested.actions.push(intent.action);
+  if (intent.control !== undefined) requested.controls.push(intent.control);
+  for (const element of intent.elements || []) {
+    if (element.kind === "readout") requested.readouts.push(element.binding);
+    if (element.kind === "action") requested.actions.push(element.binding);
+    if (element.kind === "control") requested.controls.push(element.binding);
+  }
+  for (const key of Object.keys(requested)) requested[key] = [...new Set(requested[key])];
+  return requested;
+}
+
 function validateBindings(intent) {
-  const wantsReadout = intent.readout !== undefined;
-  const wantsAction = intent.action !== undefined;
-  const wantsControl = intent.control !== undefined;
-  if (!wantsReadout && !wantsAction && !wantsControl) return { ok: true, value: { readouts: [], actions: [], controls: [] } };
+  const requested = requestedBindings(intent);
+  const wantsBindings = requested.readouts.length || requested.actions.length || requested.controls.length;
+  if (!wantsBindings) return { ok: true, value: { readouts: [], actions: [], controls: [] } };
   const bindings = normalizeBindings(intent.bindings);
   if (!bindings.ok) return bindings;
-  if (wantsReadout) {
-    if (typeof intent.readout !== "string" || !SYMBOLIC_BINDING.test(intent.readout)) return { ok: false, error: "intent.readout must be a symbolic name" };
-    if (!bindings.value.readouts.includes(intent.readout)) return { ok: false, error: `readout ${intent.readout} is not declared in intent.bindings.readouts` };
-  }
-  if (wantsAction) {
-    if (typeof intent.action !== "string" || !SYMBOLIC_BINDING.test(intent.action)) return { ok: false, error: "intent.action must be a symbolic name" };
-    if (!bindings.value.actions.includes(intent.action)) return { ok: false, error: `action ${intent.action} is not declared in intent.bindings.actions` };
-  }
-  if (wantsControl) {
-    if (typeof intent.control !== "string" || !SYMBOLIC_BINDING.test(intent.control)) return { ok: false, error: "intent.control must be a symbolic name" };
-    if (!bindings.value.controls.includes(intent.control)) return { ok: false, error: `control ${intent.control} is not declared in intent.bindings.controls` };
+  for (const key of ["readouts", "actions", "controls"]) {
+    const singular = key === "readouts" ? "readout" : key === "actions" ? "action" : "control";
+    for (const name of requested[key]) {
+      if (typeof name !== "string" || !SYMBOLIC_BINDING.test(name)) return { ok: false, error: `intent ${singular} binding must be a symbolic name` };
+      if (!bindings.value[key].includes(name)) return { ok: false, error: `${singular} ${name} is not declared in intent.bindings.${key}` };
+    }
   }
   return bindings;
 }
@@ -71,12 +79,24 @@ function labelFor(intent, labelField, fallback) {
   return intent[labelField] !== undefined ? intent[labelField] : fallback;
 }
 
+function nodeForElement(element) {
+  if (element.kind === "text") return { text: element.text };
+  const label = element.label !== undefined ? element.label : element.binding;
+  if (element.kind === "readout") return { value: element.binding, label };
+  if (element.kind === "control") return { control: element.binding, label };
+  return { button: element.binding, label };
+}
+
 function buildView(intent) {
   const body = [];
-  if (intent.text !== undefined) body.push({ text: intent.text });
-  if (intent.readout) body.push({ value: intent.readout, label: labelFor(intent, "readout_label", intent.readout) });
-  if (intent.control) body.push({ control: intent.control, label: labelFor(intent, "control_label", intent.control) });
-  if (intent.action) body.push({ button: intent.action, label: labelFor(intent, "action_label", intent.action) });
+  if (intent.elements !== undefined) {
+    for (const element of intent.elements) body.push(nodeForElement(element));
+  } else {
+    if (intent.text !== undefined) body.push({ text: intent.text });
+    if (intent.readout) body.push({ value: intent.readout, label: labelFor(intent, "readout_label", intent.readout) });
+    if (intent.control) body.push({ control: intent.control, label: labelFor(intent, "control_label", intent.control) });
+    if (intent.action) body.push({ button: intent.action, label: labelFor(intent, "action_label", intent.action) });
+  }
   if (!body.length) body.push({ text: "Interface candidate" });
   return {
     op: "view.set",
@@ -128,7 +148,7 @@ function run(request) {
       evidence: [{
         kind: "AUTHORITY",
         status: "PASS",
-        check: "candidate carries only validated authored interface text, declared symbolic bindings and presentation descriptors; no copied canonical or session state"
+        check: "candidate carries only validated authored interface text, ordered declared symbolic bindings and presentation descriptors; no copied canonical or session state"
       }],
       warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
     });
@@ -136,7 +156,7 @@ function run(request) {
 
   return result(request, MACHINE, "CANDIDATE", {
     candidate: { schema: "morphtile.view-operation/v0.4", operation: viewOperation },
-    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains validated authored interface text plus declared symbolic bindings and no copied state values" }],
+    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains validated authored interface text plus ordered declared symbolic bindings and no copied state values" }],
     warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
   });
 }
@@ -148,7 +168,9 @@ module.exports = {
   BINDING_KEYS,
   normalizePlacement,
   normalizeBindings,
+  requestedBindings,
   validateBindings,
+  nodeForElement,
   buildView,
   run
 };
