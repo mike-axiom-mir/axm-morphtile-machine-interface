@@ -79,3 +79,53 @@ test("placement candidate commits and rolls back through the pinned MorphTile tr
   assert.ok(rollback.ok && rollback.exact);
   assert.equal(MT.structHash(ws.live), before);
 });
+
+test("declared parameter control binds to the real pinned MorphTile parameter without copying its value", { skip: !corePath }, () => {
+  const MT = require(path.resolve(corePath));
+  const ws = MT.createWorkspace(MT.seedWorld());
+  const before = MT.structHash(ws.live);
+  const tower = ws.live.tiles.mt_tower;
+  const param = tower.params.find((p) => p.id === "levels");
+  const beforeValue = MT.paramValue(tower, param);
+
+  const out = run({
+    envelope_version: "0.1",
+    request_id: "pinned-parameter-control",
+    goal: "Expose the tower levels parameter through tile-owned interface matter",
+    intent: {
+      tile_path: "mt_tower",
+      title: "Tower tuning",
+      control: "levels",
+      control_label: "Tower levels",
+      bindings: { controls: ["levels"] }
+    },
+    provenance: { caller: "pinned-integration-test" }
+  });
+
+  assert.equal(out.status, "CANDIDATE");
+  assert.deepEqual(out.candidate.operation, {
+    op: "view.set",
+    id: "mt_tower",
+    view: { title: "Tower tuning", body: [{ control: "levels", label: "Tower levels" }] }
+  });
+  assert.ok(!JSON.stringify(out.candidate).includes(String(beforeValue)));
+
+  const candidate = MT.cloneBody(ws, "ai", "ai:interface-machine");
+  const edited = MT.editCandidate(ws, candidate, out.candidate.operation);
+  assert.ok(edited.ok, edited.error);
+  const plan = MT.planMerge(ws, [candidate]);
+  assert.equal(plan.status, "READY");
+  const committed = MT.commitPlan(ws, plan.id);
+  assert.ok(committed.ok);
+
+  const afterTile = ws.live.tiles.mt_tower;
+  const afterParam = afterTile.params.find((p) => p.id === "levels");
+  assert.equal(MT.paramValue(afterTile, afterParam), beforeValue);
+  const html = MT.vnodeToHTML(MT.compilePanel(ws.live).root);
+  assert.match(html, /data-param="mt_tower:levels"/);
+  assert.match(html, /type="range"/);
+
+  const rollback = MT.rollback(ws, committed.receipt.rollback_token);
+  assert.ok(rollback.ok && rollback.exact);
+  assert.equal(MT.structHash(ws.live), before);
+});
