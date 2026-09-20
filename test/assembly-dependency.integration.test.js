@@ -9,8 +9,8 @@ const assemblyPath = process.env.MORPHTILE_ASSEMBLY;
 const assemblyCommit = process.env.MORPHTILE_ASSEMBLY_COMMIT;
 const corePath = process.env.MORPHTILE_CORE;
 const coreCommit = process.env.MORPHTILE_COMMIT;
-const EXPECTED_ASSEMBLY_COMMIT = "398dc56b445f328b103381a7dc71f7552d23d000";
-const EXPECTED_MORPHTILE_COMMIT = "ef2b3c6986aa1a333247feffc43a8443f17239d0";
+const EXPECTED_ASSEMBLY_COMMIT = "052e1618e499102e816ee537d16c0550e6942721";
+const EXPECTED_MORPHTILE_COMMIT = "26b89a77f6a90715a6742dc4d084008ba63731b6";
 
 function request(id, goal, intent) {
   return {
