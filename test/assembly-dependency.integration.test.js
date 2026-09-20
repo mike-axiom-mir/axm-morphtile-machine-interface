@@ -3,14 +3,16 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");
+const manifest = require("../machine.json");
+const integrationSources = require("../fixtures/integration-sources.json");
 const { run: authorInterface } = require("../src");
 
 const assemblyPath = process.env.MORPHTILE_ASSEMBLY;
 const assemblyCommit = process.env.MORPHTILE_ASSEMBLY_COMMIT;
 const corePath = process.env.MORPHTILE_CORE;
 const coreCommit = process.env.MORPHTILE_COMMIT;
-const EXPECTED_ASSEMBLY_COMMIT = "052e1618e499102e816ee537d16c0550e6942721";
-const EXPECTED_MORPHTILE_COMMIT = "26b89a77f6a90715a6742dc4d084008ba63731b6";
+const EXPECTED_ASSEMBLY_COMMIT = integrationSources.assembly.commit;
+const EXPECTED_MORPHTILE_COMMIT = manifest.tested_against.commit;
 
 function request(id, goal, intent) {
   return {
@@ -81,7 +83,7 @@ function assembleWith(assemble, inputs, id) {
 }
 
 test("exact Assembly receiver preserves Interface target proofs and binds them into closure identity", { skip: !assemblyPath }, () => {
-  assert.equal(assemblyCommit, EXPECTED_ASSEMBLY_COMMIT, "CI Assembly checkout must match the exact proven candidate head");
+  assert.equal(assemblyCommit, EXPECTED_ASSEMBLY_COMMIT, "CI Assembly checkout must match fixtures/integration-sources.json");
   const { run: assemble } = require(path.resolve(assemblyPath));
   const interfaceOut = interfaceCandidate();
 
@@ -98,7 +100,7 @@ test("exact Assembly receiver preserves Interface target proofs and binds them i
 });
 
 test("stable proof identity makes contradictory requirements HOLD instead of coexisting opaquely", { skip: !assemblyPath }, () => {
-  assert.equal(assemblyCommit, EXPECTED_ASSEMBLY_COMMIT, "CI Assembly checkout must match the exact proven candidate head");
+  assert.equal(assemblyCommit, EXPECTED_ASSEMBLY_COMMIT, "CI Assembly checkout must match fixtures/integration-sources.json");
   const { run: assemble } = require(path.resolve(assemblyPath));
   const original = interfaceCandidate();
   const contradicted = JSON.parse(JSON.stringify(original));
@@ -113,8 +115,8 @@ test("stable proof identity makes contradictory requirements HOLD instead of coe
 });
 
 test("current staged receiver proves only canonical input-signal action authority", { skip: !assemblyPath || !corePath }, () => {
-  assert.equal(assemblyCommit, EXPECTED_ASSEMBLY_COMMIT, "CI Assembly checkout must match the exact staged-proof candidate head");
-  assert.equal(coreCommit, EXPECTED_MORPHTILE_COMMIT, "CI MorphTile checkout must match the exact proven runtime head");
+  assert.equal(assemblyCommit, EXPECTED_ASSEMBLY_COMMIT, "CI Assembly checkout must match fixtures/integration-sources.json");
+  assert.equal(coreCommit, EXPECTED_MORPHTILE_COMMIT, "CI MorphTile checkout must match machine.json tested_against.commit");
 
   const MT = require(path.resolve(corePath));
   const { resolveInterfaceTargetProof } = require(path.resolve(assemblyPath, "kit"));

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.2 — 2026-09-20
+
+- Added stable target-local proof dependencies for interface targets instead of treating symbolic names as target authority.
+- Interface target proof now describes tile existence, `ui_panel`, readout variable, parameter ID and input-signal socket requirements without copying canonical or session values.
+- Added stable tile-existence proof for tile-mode presentation anchors only, matching the runtime reference that actually needs resolution.
+- Added receiver integration evidence that preserves proof identity and rejects same-ID contradictory requirements.
+- Re-pinned MorphTile integration to merged core `d2d2df0e4ad88f1cda885e3eb1394151515e7946` after the universal custom-view action-authority repair landed.
+- Added a negative runtime proof that symbolic action `lit`, which names an output signal socket rather than an exposed input action, remains visible but inert and never gains `data-signal` authority.
+- Kept machine output schemas at v0.5; the evidence refresh does not add a new interface representation or authority layer.
+
 ## 0.5.1 — 2026-09-20
 
 - Corrected Interface Machine target normalization to accept canonical MorphTile paths such as `mt_shell/mt_room/mt_panel`, not only one-segment tile IDs.
