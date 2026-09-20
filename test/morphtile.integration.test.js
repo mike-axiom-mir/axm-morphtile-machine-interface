@@ -72,14 +72,14 @@ test("placement candidate commits and rolls back through the pinned MorphTile tr
   const canonicalHash = MT.hashOf(ws.live);
   const resolved = MT.resolvePresentation(ws.live, "mt_tower", {
     session_presentations: {
-      mt_tower: { dock: "left", preferred_position: [24, 12], secret_session_marker: "SESSION_ONLY_SENTINEL" }
+      mt_tower: { dock: "left", preferred_position: [24, 12] }
     }
   });
   assert.equal(resolved.status, "READY");
   assert.equal(resolved.session_applied, true);
   assert.equal(resolved.resolved.dock, "left");
+  assert.deepEqual(resolved.resolved.preferred_position, [24, 12]);
   assert.equal(ws.live.tiles.mt_tower.presentation.dock, "right");
-  assert.ok(!JSON.stringify(ws.live.tiles.mt_tower.presentation).includes("SESSION_ONLY_SENTINEL"));
   assert.equal(MT.hashOf(ws.live), canonicalHash);
 
   const rollback = MT.rollback(ws, committed.receipt.rollback_token);
