@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.4 — 2026-09-20
+
+- Added bounded canonical-state repeat generation with authored `{ kind: "repeat", binding, step, max, children }` containers.
+- Compiled repeat count to MorphTile's existing native expression `max(0, min(max, floor(var / step)))` and native repeat node; no private evaluator or copied state surface was added.
+- Reused the existing symbolic state-read declaration/proof lane, so repeat bindings must be declared in `intent.bindings.readouts` and the receiver must prove the actual target logic variable.
+- Bounded `step` to a positive finite number, `max` to an integer from 1 through 16, and worst-case expanded layout to the existing 64-node interface budget before emission.
+- Added pinned runtime proof that generated repeat matter follows real `mt_tower.beacon` state across the real `toggle` signal, remains render-read-only, and rolls back the structural edit exactly.
+- Re-pinned MorphTile integration to current merged core `2bdf8eade1376055473b9cc1b11734b72a5566e5`; Assembly receiver evidence remains on current integrated Assembly `08836233457d90b571063a8342434c572b87cd5e` while Assembly PR #22 stays in its own lane.
+- Explicitly left local repeat-index expressions, arbitrary expressions, cross-tile embedding and host visual-quality claims outside this candidate.
+
 ## 0.5.3 — 2026-09-20
 
 - Added bounded canonical-state conditional visibility with authored `{ kind: "when", binding, children }` containers.

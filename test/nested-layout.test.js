@@ -35,7 +35,7 @@ test("row and group layouts compile recursively while preserving authored order"
   });
 
   assert.equal(out.status, "CANDIDATE");
-  assert.equal(out.machine.version, "0.5.3");
+  assert.equal(out.machine.version, "0.5.4");
   assert.deepEqual(out.candidate.operation.view.body, [
     {
       group: [
@@ -114,5 +114,5 @@ test("the 64-node budget applies across the whole nested tree", () => {
 
   assert.equal(out.status, "HOLD");
   assert.equal(out.holds[0].code, "HOLD_INTERFACE_ELEMENTS_INVALID");
-  assert.match(out.holds[0].detail, /64 total nodes/);
+  assert.match(out.holds[0].detail, /64 total authored nodes/);
 });
