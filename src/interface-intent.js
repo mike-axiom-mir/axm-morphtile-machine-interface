@@ -27,9 +27,13 @@ const ELEMENT_FIELDS = Object.freeze({
   text: Object.freeze(["kind", "text"]),
   readout: Object.freeze(["kind", "binding", "label"]),
   control: Object.freeze(["kind", "binding", "label"]),
-  action: Object.freeze(["kind", "binding", "label"])
+  action: Object.freeze(["kind", "binding", "label"]),
+  row: Object.freeze(["kind", "children"]),
+  group: Object.freeze(["kind", "children"])
 });
 const TILE_ID = /^[A-Za-z0-9_-]+$/;
+const MAX_LAYOUT_NODES = 64;
+const MAX_LAYOUT_DEPTH = 6;
 
 class InterfaceIntentError extends Error {
   constructor(code, message) {
@@ -59,21 +63,28 @@ function assertString(value, field) {
   }
 }
 
-function normalizeElements(value) {
+function normalizeElements(value, depth, state) {
   if (value === undefined) return undefined;
+  const atDepth = depth === undefined ? 0 : depth;
+  const budget = state || { count: 0 };
   if (!Array.isArray(value) || value.length === 0) {
-    throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENTS_INVALID", "intent.elements must be a non-empty array when supplied");
+    throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENTS_INVALID", "interface element lists must be non-empty arrays when supplied");
   }
-  if (value.length > 64) {
-    throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENTS_INVALID", "intent.elements may contain at most 64 elements");
+  if (atDepth > MAX_LAYOUT_DEPTH) {
+    throw new InterfaceIntentError("HOLD_INTERFACE_LAYOUT_TOO_DEEP", "nested row/group layout may be at most " + MAX_LAYOUT_DEPTH + " levels deep");
   }
+
   return value.map((element, index) => {
-    const at = "intent.elements[" + index + "]";
+    const at = "intent.elements" + (atDepth ? " nested" : "") + "[" + index + "]";
+    budget.count += 1;
+    if (budget.count > MAX_LAYOUT_NODES) {
+      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENTS_INVALID", "interface layout may contain at most " + MAX_LAYOUT_NODES + " total nodes");
+    }
     if (!isPlainObject(element)) {
       throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + " must be an object");
     }
     if (typeof element.kind !== "string" || !Object.prototype.hasOwnProperty.call(ELEMENT_FIELDS, element.kind)) {
-      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".kind must be text|readout|control|action");
+      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".kind must be text|readout|control|action|row|group");
     }
     const allowed = ELEMENT_FIELDS[element.kind];
     const unknown = Object.keys(element).filter((key) => !allowed.includes(key)).sort();
@@ -88,6 +99,12 @@ function normalizeElements(value) {
         throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".text must be a string");
       }
       return { kind: "text", text: element.text };
+    }
+    if (element.kind === "row" || element.kind === "group") {
+      if (!Array.isArray(element.children) || element.children.length === 0) {
+        throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".children must be a non-empty array");
+      }
+      return { kind: element.kind, children: normalizeElements(element.children, atDepth + 1, budget) };
     }
     if (typeof element.binding !== "string") {
       throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".binding must be a string");
@@ -137,7 +154,10 @@ function normalizeInterfaceIntent(intent) {
   }
 
   const hasInteractiveLegacy = ["readout", "control", "action"].some((key) => intent[key] !== undefined && intent[key] !== null);
-  const hasInteractiveElements = !!(elements && elements.some((element) => element.kind !== "text"));
+  const hasInteractiveElements = !!(elements && elements.some(function containsInteractive(element) {
+    if (element.kind === "row" || element.kind === "group") return element.children.some(containsInteractive);
+    return element.kind !== "text";
+  }));
   if (intent.bindings !== undefined && !hasInteractiveLegacy && !hasInteractiveElements) {
     throw new InterfaceIntentError(
       "HOLD_INTERFACE_ORPHAN_BINDINGS",
@@ -155,6 +175,8 @@ module.exports = {
   LEGACY_CONTENT_FIELDS,
   ELEMENT_FIELDS,
   TILE_ID,
+  MAX_LAYOUT_NODES,
+  MAX_LAYOUT_DEPTH,
   InterfaceIntentError,
   normalizeElements,
   normalizeInterfaceIntent
