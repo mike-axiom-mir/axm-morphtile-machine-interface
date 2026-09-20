@@ -5,7 +5,7 @@ const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.2.0" };
 const PRESENTATION_MODES = new Set(["screen", "docked", "floating", "fullscreen", "embedded", "world", "tile"]);
 const DOCKS = new Set(["left", "right", "top", "bottom"]);
 const PRESENTATION_KEYS = new Set(["mode", "dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]);
-const BINDING_KEYS = new Set(["readouts", "actions"]);
+const BINDING_KEYS = new Set(["readouts", "actions", "controls"]);
 const SYMBOLIC_BINDING = /^[A-Za-z0-9_.-]+$/;
 
 function finiteVector(value, length) {
@@ -35,7 +35,7 @@ function normalizeBindings(value) {
   const unknownKeys = Object.keys(value).filter((key) => !BINDING_KEYS.has(key)).sort();
   if (unknownKeys.length) return { ok: false, error: `intent.bindings contains unsupported field(s): ${unknownKeys.join(", ")}` };
   const normalized = {};
-  for (const key of ["readouts", "actions"]) {
+  for (const key of ["readouts", "actions", "controls"]) {
     const list = value[key] === undefined ? [] : value[key];
     if (!Array.isArray(list)) return { ok: false, error: `intent.bindings.${key} must be an array of symbolic names` };
     if (list.some((name) => typeof name !== "string" || !SYMBOLIC_BINDING.test(name))) return { ok: false, error: `intent.bindings.${key} must contain only symbolic names` };
@@ -47,7 +47,8 @@ function normalizeBindings(value) {
 function validateBindings(intent) {
   const wantsReadout = intent.readout !== undefined && intent.readout !== null;
   const wantsAction = intent.action !== undefined && intent.action !== null;
-  if (!wantsReadout && !wantsAction) return { ok: true, value: { readouts: [], actions: [] } };
+  const wantsControl = intent.control !== undefined && intent.control !== null;
+  if (!wantsReadout && !wantsAction && !wantsControl) return { ok: true, value: { readouts: [], actions: [], controls: [] } };
   const bindings = normalizeBindings(intent.bindings);
   if (!bindings.ok) return bindings;
   if (wantsReadout) {
@@ -58,12 +59,17 @@ function validateBindings(intent) {
     if (typeof intent.action !== "string" || !SYMBOLIC_BINDING.test(intent.action)) return { ok: false, error: "intent.action must be a symbolic name" };
     if (!bindings.value.actions.includes(intent.action)) return { ok: false, error: `action ${intent.action} is not declared in intent.bindings.actions` };
   }
+  if (wantsControl) {
+    if (typeof intent.control !== "string" || !SYMBOLIC_BINDING.test(intent.control)) return { ok: false, error: "intent.control must be a symbolic name" };
+    if (!bindings.value.controls.includes(intent.control)) return { ok: false, error: `control ${intent.control} is not declared in intent.bindings.controls` };
+  }
   return bindings;
 }
 
 function buildView(intent) {
   const body = [];
   if (intent.readout) body.push({ value: intent.readout, label: intent.readout_label || intent.readout });
+  if (intent.control) body.push({ control: intent.control, label: intent.control_label || intent.control });
   if (intent.action) body.push({ button: intent.action, label: intent.action_label || intent.action });
   if (!body.length) body.push({ text: intent.text || "Interface candidate" });
   return { op: "view.set", id: intent.tile_path, view: { title: intent.title || "Interface", body } };
@@ -100,7 +106,7 @@ function run(request) {
       evidence: [{
         kind: "AUTHORITY",
         status: "PASS",
-        check: "candidate carries only declared symbolic readout/action bindings plus presentation descriptors; no copied canonical or session state"
+        check: "candidate carries only declared symbolic readout/action/control bindings plus presentation descriptors; no copied canonical or session state"
       }],
       warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
     });
@@ -108,7 +114,7 @@ function run(request) {
 
   return result(request, MACHINE, "CANDIDATE", {
     candidate: { schema: "morphtile.view-operation/v0.4", operation: viewOperation },
-    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains only declared symbolic readout/action bindings and no copied state values" }],
+    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains only declared symbolic readout/action/control bindings and no copied state values" }],
     warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
   });
 }
