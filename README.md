@@ -10,7 +10,10 @@ Builds candidate interface matter over canonical MorphTile matter. The foundatio
 4. **What it produces:** The existing `morphtile.view-operation/v0.4` candidate when no placement is requested, or `morphtile.interface-operations/v0.4` containing `view.set` + `presentation.set` when placement is requested.
 5. **MorphTile interaction:** output goes through MorphTile's public contracts and clone → plan → commit → receipt → rollback path. MorphTile does not depend on this repository.
 6. **Authority boundary:** placement normalization copies only the public presentation descriptor fields. Canonical-state and session-state snapshots are not copied into the candidate.
-7. **When it cannot satisfy a request:** invalid or unknown presentation descriptors return a typed `HOLD_INVALID_PRESENTATION_PLACEMENT`.
+7. **Interactive binding boundary:** readout/action names must be symbolic names explicitly declared in `intent.bindings.readouts` / `intent.bindings.actions`. Missing, undeclared, malformed, or authority-shaped binding data returns `HOLD_INVALID_INTERFACE_BINDING` rather than generating a plausible but ungrounded control.
+8. **When placement cannot be satisfied:** invalid or unknown presentation descriptors return `HOLD_INVALID_PRESENTATION_PLACEMENT`.
+
+The binding declaration is not proof that the target actually exposes those names. The caller/receiver must prove that against the target MorphTile before accepting the candidate; emitted candidates carry `CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET` until that project-local proof exists.
 
 ## Run
 
@@ -26,10 +29,10 @@ Node 18 or later; zero runtime dependencies; no secrets required for the local p
 
 ## Truth boundary
 
-- IMPLEMENTED: view candidates, placement normalization, `presentation.set` candidate output and the local envelope.
-- TESTED LOCALLY: structural authority and descriptor validation tests.
-- PINNED INTEGRATION HARNESS: executes the candidate through real MorphTile clone → plan → commit → receipt → rollback and checks that session placement remains outside canonical matter.
+- IMPLEMENTED: view candidates, fail-closed symbolic binding declarations, placement normalization, `presentation.set` candidate output and the local envelope.
+- TESTED LOCALLY/CI WHEN GREEN: structural authority, binding declaration and descriptor validation tests.
+- PINNED INTEGRATION HARNESS: executes the placement candidate through real MorphTile clone → plan → commit → receipt → rollback and checks that session placement remains outside canonical matter.
 - EXPERIMENTAL: envelope v0.1 and candidate schemas in this repository.
-- NOT CLAIMED: compatibility beyond the pinned MorphTile commit, host rendering quality, arbitrary responsive interface-layout design, or ambient host permissions.
+- NOT CLAIMED: proof that a caller-supplied binding declaration matches the actual target, compatibility beyond the pinned MorphTile commit, host rendering quality, arbitrary responsive interface-layout design, or ambient host permissions.
 
 This remains a replaceable creation machine, not a dependency of MorphTile core and not evidence that MorphTile can autonomously manufacture MorphTile.
