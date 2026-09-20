@@ -10,7 +10,7 @@ const assemblyCommit = process.env.MORPHTILE_ASSEMBLY_COMMIT;
 const corePath = process.env.MORPHTILE_CORE;
 const coreCommit = process.env.MORPHTILE_COMMIT;
 const EXPECTED_ASSEMBLY_COMMIT = "052e1618e499102e816ee537d16c0550e6942721";
-const EXPECTED_MORPHTILE_COMMIT = "26b89a77f6a90715a6742dc4d084008ba63731b6";
+const EXPECTED_MORPHTILE_COMMIT = "d2d2df0e4ad88f1cda885e3eb1394151515e7946";
 
 function request(id, goal, intent) {
   return {
