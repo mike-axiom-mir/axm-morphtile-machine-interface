@@ -28,6 +28,7 @@ const LEGACY_CONTENT_FIELDS = Object.freeze([
 const ELEMENT_FIELDS = Object.freeze({
   text: Object.freeze(["kind", "text"]),
   readout: Object.freeze(["kind", "binding", "label"]),
+  meter: Object.freeze(["kind", "binding", "min", "max", "label"]),
   control: Object.freeze(["kind", "binding", "label"]),
   action: Object.freeze(["kind", "binding", "label"]),
   row: Object.freeze(["kind", "children"]),
@@ -169,7 +170,7 @@ function normalizeElements(value, depth, state) {
       throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + " must be an object");
     }
     if (typeof element.kind !== "string" || !Object.prototype.hasOwnProperty.call(ELEMENT_FIELDS, element.kind)) {
-      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".kind must be text|readout|control|action|row|group");
+      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".kind must be text|readout|meter|control|action|row|group");
     }
     const allowed = ELEMENT_FIELDS[element.kind];
     const unknown = Object.keys(element).filter((key) => !allowed.includes(key)).sort();
@@ -196,6 +197,21 @@ function normalizeElements(value, depth, state) {
     }
     if (element.label !== undefined && typeof element.label !== "string") {
       throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".label must be a string when supplied");
+    }
+    if (element.kind === "meter") {
+      if (
+        typeof element.min !== "number" || !Number.isFinite(element.min) ||
+        typeof element.max !== "number" || !Number.isFinite(element.max) ||
+        element.max <= element.min
+      ) {
+        throw new InterfaceIntentError(
+          "HOLD_INTERFACE_ELEMENT_INVALID",
+          at + ".min and .max must be finite numbers with max greater than min"
+        );
+      }
+      const normalized = { kind: "meter", binding: element.binding, min: element.min, max: element.max };
+      if (element.label !== undefined) normalized.label = element.label;
+      return normalized;
     }
     const normalized = { kind: element.kind, binding: element.binding };
     if (element.label !== undefined) normalized.label = element.label;
