@@ -182,4 +182,58 @@ test("authored explanatory text survives beside a canonical control in the pinne
 
   const rollback = MT.rollback(ws, committed.receipt.rollback_token);
   assert.ok(rollback.ok && rollback.exact);
+  assert.equal(MT.structHash(ws.live), before);
+});
+
+test("ordered elements commit as one view and preserve authored order in the pinned MorphTile runtime", { skip: !corePath }, () => {
+  assertPinnedRuntime();
+  const MT = require(path.resolve(corePath));
+  const ws = MT.createWorkspace(MT.seedWorld());
+  const before = MT.structHash(ws.live);
+  const tower = ws.live.tiles.mt_tower;
+  const param = tower.params.find((p) => p.id === "levels");
+  const beforeValue = MT.paramValue(tower, param);
+
+  const out = run({
+    envelope_version: "0.1",
+    request_id: "pinned-ordered-elements",
+    goal: "Build one ordered tile-owned interface atomically",
+    canonical_state: { forbidden_copy: beforeValue },
+    intent: {
+      tile_path: "mt_tower",
+      title: "Ordered tower",
+      elements: [
+        { kind: "control", binding: "levels", label: "Tower levels" },
+        { kind: "text", text: "Control first, explanation second." }
+      ],
+      bindings: { controls: ["levels"] }
+    },
+    provenance: { caller: "pinned-integration-test" }
+  });
+
+  assert.equal(out.status, "CANDIDATE");
+  assert.deepEqual(out.candidate.operation.view.body, [
+    { control: "levels", label: "Tower levels" },
+    { text: "Control first, explanation second." }
+  ]);
+  assert.ok(!JSON.stringify(out.candidate).includes("forbidden_copy"));
+
+  const candidate = MT.cloneBody(ws, "ai", "ai:interface-machine");
+  const edited = MT.editCandidate(ws, candidate, out.candidate.operation);
+  assert.ok(edited.ok, edited.error);
+  const plan = MT.planMerge(ws, [candidate]);
+  assert.equal(plan.status, "READY");
+  const committed = MT.commitPlan(ws, plan.id);
+  assert.ok(committed.ok);
+  assert.deepEqual(ws.live.tiles.mt_tower.view.body, out.candidate.operation.view.body);
+  assert.equal(MT.paramValue(ws.live.tiles.mt_tower, ws.live.tiles.mt_tower.params.find((p) => p.id === "levels")), beforeValue);
+
+  const html = MT.vnodeToHTML(MT.compilePanel(ws.live).root);
+  const controlAt = html.indexOf('data-param="mt_tower:levels"');
+  const textAt = html.indexOf("Control first, explanation second.");
+  assert.ok(controlAt >= 0 && textAt > controlAt, "compiled panel must preserve authored control-before-text order");
+
+  const rollback = MT.rollback(ws, committed.receipt.rollback_token);
+  assert.ok(rollback.ok && rollback.exact);
+  assert.equal(MT.structHash(ws.live), before);
 });
