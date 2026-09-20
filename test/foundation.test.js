@@ -109,6 +109,44 @@ test("undeclared action names hold instead of creating a plausible but ungrounde
   assert.equal(out.candidate, null);
 });
 
+test("declared parameter controls compile as symbolic control nodes without copying parameter values", () => {
+  const out = run({
+    ...request,
+    request_id: "interface-declared-control",
+    intent: {
+      tile_path: "mt_tower",
+      title: "Tower tuning",
+      control: "levels",
+      control_label: "Tower levels",
+      bindings: { controls: ["levels"] }
+    }
+  });
+  assert.equal(out.status, "CANDIDATE");
+  assert.deepEqual(out.candidate.operation, {
+    op: "view.set",
+    id: "mt_tower",
+    view: { title: "Tower tuning", body: [{ control: "levels", label: "Tower levels" }] }
+  });
+  assert.ok(!JSON.stringify(out.candidate).includes("value"));
+});
+
+test("undeclared parameter controls hold instead of manufacturing a target parameter", () => {
+  const out = run({
+    ...request,
+    request_id: "interface-undeclared-control",
+    intent: {
+      tile_path: "mt_tower",
+      title: "Tower tuning",
+      control: "levels",
+      bindings: { controls: ["height"] }
+    }
+  });
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INVALID_INTERFACE_BINDING");
+  assert.match(out.holds[0].detail, /levels/);
+  assert.equal(out.candidate, null);
+});
+
 test("binding declarations carry names only and fail closed on authority-shaped extras", () => {
   const out = run({
     ...request,
