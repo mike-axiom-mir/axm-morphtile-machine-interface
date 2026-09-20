@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.5.0 — 2026-09-20
+
+- Added MorphTile-native nested relative layout through `row` and `group` elements with recursive `children`.
+- Preserved authored order recursively while keeping layout structural rather than introducing a private pixel/layout authority.
+- Applied explicit readout/action/control binding validation recursively through nested layout.
+- Bounded each interface layout tree to 64 total nodes and six container levels.
+- Added fail-closed regressions for empty containers, excessive depth, whole-tree node budget and authority-shaped nested fields.
+- Re-pinned exact integration evidence to current MorphTile main `ef2b3c6986aa1a333247feffc43a8443f17239d0`.
+- Added pinned runtime proof that nested row/group layout materializes real MorphTile controls/actions without copying canonical values and remains exactly rollbackable.
+
+## 0.4.0 — 2026-09-20
+
+- Added ordered `intent.elements` so a complete MorphTile `view.body` can be authored atomically rather than through overwrite-prone repeated `view.set` candidates.
+- Added bounded `text`, `readout`, `control` and `action` element kinds with authored-order preservation.
+- Rejected ambiguous mixing of legacy body fields with ordered elements.
+- Applied a 64-element bound and retained fail-closed unknown-field and symbolic-binding boundaries.
+- Added pinned runtime proof that authored control-before-text order survives real MorphTile panel compilation and exact rollback.
+
 ## 0.3.0 — 2026-09-20
 
 - Added a fail-closed top-level interface intent contract so unsupported or misspelled fields cannot disappear silently.

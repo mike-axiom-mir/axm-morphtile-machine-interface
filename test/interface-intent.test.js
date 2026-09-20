@@ -7,8 +7,8 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-test("machine v0.4 fails closed on malformed and unknown top-level interface intent", () => {
-  assert.equal(MACHINE.version, "0.4.0");
+test("machine v0.5 fails closed on malformed and unknown top-level interface intent", () => {
+  assert.equal(MACHINE.version, "0.5.0");
 
   for (const intent of ["panel", [], 7, null]) {
     const out = run({ ...fixture, request_id: "interface-intent-invalid-" + String(intent), intent });
@@ -58,6 +58,26 @@ test("orphan labels and binding declarations hold instead of being silently igno
   out = run(orphanBindings);
   assert.equal(out.status, "HOLD");
   assert.equal(out.holds[0].code, "HOLD_INTERFACE_ORPHAN_BINDINGS");
+});
+
+test("declared symbolic bindings must all be consumed by the authored interface", () => {
+  const extraAction = clone(fixture);
+  extraAction.request_id = "interface-unused-action-binding";
+  extraAction.intent.bindings.actions.push("decrement");
+  let out = run(extraAction);
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INVALID_INTERFACE_BINDING");
+  assert.equal(out.holds[0].detail, "intent.bindings.actions declares unused symbolic name: decrement");
+  assert.equal(out.candidate, null);
+
+  const extraCrossKind = clone(fixture);
+  extraCrossKind.request_id = "interface-unused-control-binding";
+  extraCrossKind.intent.bindings.controls = ["count"];
+  out = run(extraCrossKind);
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INVALID_INTERFACE_BINDING");
+  assert.equal(out.holds[0].detail, "intent.bindings.controls declares unused symbolic name: count");
+  assert.equal(out.candidate, null);
 });
 
 test("explicit text is preserved alongside controls instead of disappearing", () => {
