@@ -2,7 +2,7 @@
 
 const { assertRequest, result } = require("./envelope");
 const { TILE_ID, normalizeInterfaceIntent } = require("./interface-intent");
-const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.4.0" };
+const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.0" };
 const PRESENTATION_MODES = new Set(["screen", "docked", "floating", "fullscreen", "embedded", "world", "tile"]);
 const DOCKS = new Set(["left", "right", "top", "bottom"]);
 const PRESENTATION_KEYS = new Set(["mode", "dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]);
@@ -50,11 +50,13 @@ function requestedBindings(intent) {
   if (intent.readout !== undefined) requested.readouts.push(intent.readout);
   if (intent.action !== undefined) requested.actions.push(intent.action);
   if (intent.control !== undefined) requested.controls.push(intent.control);
-  for (const element of intent.elements || []) {
+  const collect = (element) => {
     if (element.kind === "readout") requested.readouts.push(element.binding);
-    if (element.kind === "action") requested.actions.push(element.binding);
-    if (element.kind === "control") requested.controls.push(element.binding);
-  }
+    else if (element.kind === "action") requested.actions.push(element.binding);
+    else if (element.kind === "control") requested.controls.push(element.binding);
+    else if (element.kind === "row" || element.kind === "group") for (const child of element.children) collect(child);
+  };
+  for (const element of intent.elements || []) collect(element);
   for (const key of Object.keys(requested)) requested[key] = [...new Set(requested[key])];
   return requested;
 }
@@ -81,6 +83,8 @@ function labelFor(intent, labelField, fallback) {
 
 function nodeForElement(element) {
   if (element.kind === "text") return { text: element.text };
+  if (element.kind === "row") return { row: element.children.map(nodeForElement) };
+  if (element.kind === "group") return { group: element.children.map(nodeForElement) };
   const label = element.label !== undefined ? element.label : element.binding;
   if (element.kind === "readout") return { value: element.binding, label };
   if (element.kind === "control") return { control: element.binding, label };
@@ -139,7 +143,7 @@ function run(request) {
     }
     return result(request, MACHINE, "CANDIDATE", {
       candidate: {
-        schema: "morphtile.interface-operations/v0.4",
+        schema: "morphtile.interface-operations/v0.5",
         operations: [
           viewOperation,
           { op: "presentation.set", id: intent.tile_path, presentation: placement.value }
@@ -148,15 +152,15 @@ function run(request) {
       evidence: [{
         kind: "AUTHORITY",
         status: "PASS",
-        check: "candidate carries only validated authored interface text, ordered declared symbolic bindings and presentation descriptors; no copied canonical or session state"
+        check: "candidate carries only validated authored interface text, bounded nested relative layout, declared symbolic bindings and presentation descriptors; no copied canonical or session state"
       }],
       warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
     });
   }
 
   return result(request, MACHINE, "CANDIDATE", {
-    candidate: { schema: "morphtile.view-operation/v0.4", operation: viewOperation },
-    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains validated authored interface text plus ordered declared symbolic bindings and no copied state values" }],
+    candidate: { schema: "morphtile.view-operation/v0.5", operation: viewOperation },
+    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains validated authored interface text plus bounded nested relative layout and declared symbolic bindings with no copied state values" }],
     warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
   });
 }
