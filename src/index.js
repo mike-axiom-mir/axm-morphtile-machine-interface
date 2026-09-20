@@ -5,6 +5,8 @@ const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.2.0" };
 const PRESENTATION_MODES = new Set(["screen", "docked", "floating", "fullscreen", "embedded", "world", "tile"]);
 const DOCKS = new Set(["left", "right", "top", "bottom"]);
 const PRESENTATION_KEYS = new Set(["mode", "dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]);
+const BINDING_KEYS = new Set(["readouts", "actions"]);
+const SYMBOLIC_BINDING = /^[A-Za-z0-9_.-]+$/;
 
 function finiteVector(value, length) {
   return Array.isArray(value) && value.length === length && value.every((n) => typeof n === "number" && Number.isFinite(n));
@@ -28,6 +30,37 @@ function normalizePlacement(value) {
   return { ok: true, value: placement };
 }
 
+function normalizeBindings(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return { ok: false, error: "intent.bindings must be an object" };
+  const unknownKeys = Object.keys(value).filter((key) => !BINDING_KEYS.has(key)).sort();
+  if (unknownKeys.length) return { ok: false, error: `intent.bindings contains unsupported field(s): ${unknownKeys.join(", ")}` };
+  const normalized = {};
+  for (const key of ["readouts", "actions"]) {
+    const list = value[key] === undefined ? [] : value[key];
+    if (!Array.isArray(list)) return { ok: false, error: `intent.bindings.${key} must be an array of symbolic names` };
+    if (list.some((name) => typeof name !== "string" || !SYMBOLIC_BINDING.test(name))) return { ok: false, error: `intent.bindings.${key} must contain only symbolic names` };
+    normalized[key] = [...new Set(list)].sort();
+  }
+  return { ok: true, value: normalized };
+}
+
+function validateBindings(intent) {
+  const wantsReadout = intent.readout !== undefined && intent.readout !== null;
+  const wantsAction = intent.action !== undefined && intent.action !== null;
+  if (!wantsReadout && !wantsAction) return { ok: true, value: { readouts: [], actions: [] } };
+  const bindings = normalizeBindings(intent.bindings);
+  if (!bindings.ok) return bindings;
+  if (wantsReadout) {
+    if (typeof intent.readout !== "string" || !SYMBOLIC_BINDING.test(intent.readout)) return { ok: false, error: "intent.readout must be a symbolic name" };
+    if (!bindings.value.readouts.includes(intent.readout)) return { ok: false, error: `readout ${intent.readout} is not declared in intent.bindings.readouts` };
+  }
+  if (wantsAction) {
+    if (typeof intent.action !== "string" || !SYMBOLIC_BINDING.test(intent.action)) return { ok: false, error: "intent.action must be a symbolic name" };
+    if (!bindings.value.actions.includes(intent.action)) return { ok: false, error: `action ${intent.action} is not declared in intent.bindings.actions` };
+  }
+  return bindings;
+}
+
 function buildView(intent) {
   const body = [];
   if (intent.readout) body.push({ value: intent.readout, label: intent.readout_label || intent.readout });
@@ -40,6 +73,13 @@ function run(request) {
   assertRequest(request);
   const intent = request.intent || {};
   if (!intent.tile_path) return result(request, MACHINE, "HOLD", { holds: [{ code: "HOLD_TILE_PATH_REQUIRED" }] });
+
+  const bindings = validateBindings(intent);
+  if (!bindings.ok) {
+    return result(request, MACHINE, "HOLD", {
+      holds: [{ code: "HOLD_INVALID_INTERFACE_BINDING", detail: bindings.error }]
+    });
+  }
 
   const viewOperation = buildView(intent);
   if (intent.placement !== undefined) {
@@ -60,17 +100,17 @@ function run(request) {
       evidence: [{
         kind: "AUTHORITY",
         status: "PASS",
-        check: "candidate carries presentation descriptors plus canonical tile/action names and no copied canonical or session state"
+        check: "candidate carries only declared symbolic readout/action bindings plus presentation descriptors; no copied canonical or session state"
       }],
-      warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }]
+      warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
     });
   }
 
   return result(request, MACHINE, "CANDIDATE", {
     candidate: { schema: "morphtile.view-operation/v0.4", operation: viewOperation },
-    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains presentation plus real tile/action names and no copied state values" }],
-    warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }]
+    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains only declared symbolic readout/action bindings and no copied state values" }],
+    warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
   });
 }
 
-module.exports = { MACHINE, PRESENTATION_MODES, PRESENTATION_KEYS, normalizePlacement, run };
+module.exports = { MACHINE, PRESENTATION_MODES, PRESENTATION_KEYS, BINDING_KEYS, normalizePlacement, normalizeBindings, validateBindings, run };
