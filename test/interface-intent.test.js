@@ -8,7 +8,7 @@ function clone(value) {
 }
 
 test("machine v0.5 fails closed on malformed and unknown top-level interface intent", () => {
-  assert.equal(MACHINE.version, "0.5.0");
+  assert.equal(MACHINE.version, "0.5.1");
 
   for (const intent of ["panel", [], 7, null]) {
     const out = run({ ...fixture, request_id: "interface-intent-invalid-" + String(intent), intent });
@@ -27,17 +27,28 @@ test("machine v0.5 fails closed on malformed and unknown top-level interface int
   assert.equal(out.candidate, null);
 });
 
-test("tile and anchor references fail closed before they become misleading candidates", () => {
-  const badTile = clone(fixture);
-  badTile.request_id = "interface-bad-tile-path";
-  badTile.intent.tile_path = "mt/tower";
-  let out = run(badTile);
-  assert.equal(out.status, "HOLD");
-  assert.equal(out.holds[0].code, "HOLD_INTERFACE_TILE_PATH_INVALID");
+test("canonical nested tile paths and anchors are accepted while malformed paths fail closed", () => {
+  const nested = clone(fixture);
+  nested.request_id = "interface-nested-tile-path";
+  nested.intent.tile_path = "mt_shell/mt_room/mt_counter";
+  nested.intent.placement = { mode: "tile", anchor: "mt_shell/mt_mount" };
+  let out = run(nested);
+  assert.equal(out.status, "CANDIDATE");
+  assert.equal(out.candidate.operations[0].id, "mt_shell/mt_room/mt_counter");
+  assert.equal(out.candidate.operations[1].presentation.anchor, "mt_shell/mt_mount");
+
+  for (const value of ["/mt_shell", "mt_shell/", "mt_shell//mt_room", "mt_shell/../mt_room", "mt shell/mt_room"]) {
+    const badTile = clone(fixture);
+    badTile.request_id = "interface-bad-tile-path-" + value;
+    badTile.intent.tile_path = value;
+    out = run(badTile);
+    assert.equal(out.status, "HOLD");
+    assert.equal(out.holds[0].code, "HOLD_INTERFACE_TILE_PATH_INVALID");
+  }
 
   const badAnchor = clone(fixture);
   badAnchor.request_id = "interface-bad-anchor";
-  badAnchor.intent.placement = { mode: "tile", anchor: "mt/island" };
+  badAnchor.intent.placement = { mode: "tile", anchor: "mt_shell//mt_island" };
   out = run(badAnchor);
   assert.equal(out.status, "HOLD");
   assert.equal(out.holds[0].code, "HOLD_INVALID_PRESENTATION_PLACEMENT");
