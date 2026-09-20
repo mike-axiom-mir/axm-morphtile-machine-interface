@@ -73,6 +73,13 @@ function validateBindings(intent) {
       if (typeof name !== "string" || !SYMBOLIC_BINDING.test(name)) return { ok: false, error: `intent ${singular} binding must be a symbolic name` };
       if (!bindings.value[key].includes(name)) return { ok: false, error: `${singular} ${name} is not declared in intent.bindings.${key}` };
     }
+    const unused = bindings.value[key].filter((name) => !requested[key].includes(name));
+    if (unused.length) {
+      return {
+        ok: false,
+        error: `intent.bindings.${key} declares unused symbolic name${unused.length === 1 ? "" : "s"}: ${unused.join(", ")}`
+      };
+    }
   }
   return bindings;
 }
