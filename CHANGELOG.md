@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.3 — 2026-09-20
+
+- Added bounded canonical-state conditional visibility with authored `{ kind: "when", binding, children }` containers.
+- Compiled `when` to MorphTile's existing native `{ group: [...], when: ["var", binding] }` view primitive instead of adding a private evaluator or copied state surface.
+- Reused the existing symbolic state-read declaration/proof lane so conditional bindings must be declared in `intent.bindings.readouts` and receiver proof must establish the actual target logic variable.
+- Applied the existing recursive node/depth budgets and fail-closed unknown-field handling to conditional containers.
+- Added pinned runtime proof that visibility follows real `mt_tower.beacon` state across the real `toggle` signal, remains render-read-only, preserves real input-action authority inside the visible group, and rolls back exactly.
+- Re-pinned the real candidate to current integrated MorphTile `63a65c70bb702cb9ac979ec04233ffaa7ed5d179` and Assembly receiver `08836233457d90b571063a8342434c572b87cd5e`.
+- Kept output schemas at v0.5 and explicitly left arbitrary expressions, repeat generation, cross-tile embedding and host visual-quality claims outside this lane.
+
 ## 0.5.2 — 2026-09-20
 
 - Added stable target-local proof dependencies for interface targets instead of treating symbolic names as target authority.
