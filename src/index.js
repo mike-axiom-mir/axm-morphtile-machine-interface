@@ -51,7 +51,7 @@ function requestedBindings(intent) {
   if (intent.action !== undefined) requested.actions.push(intent.action);
   if (intent.control !== undefined) requested.controls.push(intent.control);
   const collect = (element) => {
-    if (element.kind === "readout") requested.readouts.push(element.binding);
+    if (element.kind === "readout" || element.kind === "meter") requested.readouts.push(element.binding);
     else if (element.kind === "action") requested.actions.push(element.binding);
     else if (element.kind === "control") requested.controls.push(element.binding);
     else if (element.kind === "row" || element.kind === "group") for (const child of element.children) collect(child);
@@ -126,6 +126,7 @@ function nodeForElement(element) {
   if (element.kind === "group") return { group: element.children.map(nodeForElement) };
   const label = element.label !== undefined ? element.label : element.binding;
   if (element.kind === "readout") return { value: element.binding, label };
+  if (element.kind === "meter") return { meter: ["var", element.binding], min: element.min, max: element.max, label };
   if (element.kind === "control") return { control: element.binding, label };
   return { button: element.binding, label };
 }
