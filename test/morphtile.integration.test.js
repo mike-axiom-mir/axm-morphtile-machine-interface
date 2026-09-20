@@ -238,3 +238,69 @@ test("ordered elements commit as one view and preserve authored order in the pin
   assert.ok(rollback.ok && rollback.exact);
   assert.equal(MT.structHash(ws.live), before);
 });
+
+test("nested relative layout survives real MorphTile compile, action/control binding and rollback", { skip: !corePath }, () => {
+  assertPinnedRuntime();
+  const MT = require(path.resolve(corePath));
+  const ws = MT.createWorkspace(MT.seedWorld());
+  const before = MT.structHash(ws.live);
+  const tower = ws.live.tiles.mt_tower;
+  const param = tower.params.find((p) => p.id === "levels");
+  const beforeValue = MT.paramValue(tower, param);
+
+  const out = run({
+    envelope_version: "0.1",
+    request_id: "pinned-nested-layout",
+    goal: "Build relative row/group interface matter without a pixel-layout system",
+    canonical_state: { forbidden_copy: beforeValue },
+    intent: {
+      tile_path: "mt_tower",
+      title: "Nested tower",
+      elements: [
+        {
+          kind: "group",
+          children: [
+            { kind: "text", text: "Beacon" },
+            {
+              kind: "row",
+              children: [
+                { kind: "control", binding: "levels", label: "Levels" },
+                { kind: "action", binding: "toggle", label: "Toggle beacon" }
+              ]
+            }
+          ]
+        }
+      ],
+      bindings: { controls: ["levels"], actions: ["toggle"] }
+    },
+    provenance: { caller: "pinned-integration-test" }
+  });
+
+  assert.equal(out.status, "CANDIDATE");
+  assert.ok(!JSON.stringify(out.candidate).includes("forbidden_copy"));
+  assert.deepEqual(out.candidate.operation.view.body, [{
+    group: [
+      { text: "Beacon" },
+      { row: [{ control: "levels", label: "Levels" }, { button: "toggle", label: "Toggle beacon" }] }
+    ]
+  }]);
+
+  const candidate = MT.cloneBody(ws, "ai", "ai:interface-machine");
+  const edited = MT.editCandidate(ws, candidate, out.candidate.operation);
+  assert.ok(edited.ok, edited.error);
+  const plan = MT.planMerge(ws, [candidate]);
+  assert.equal(plan.status, "READY");
+  const committed = MT.commitPlan(ws, plan.id);
+  assert.ok(committed.ok);
+
+  const html = MT.vnodeToHTML(MT.compilePanel(ws.live).root);
+  assert.match(html, /class="v-group"/);
+  assert.match(html, /class="v-row"/);
+  assert.match(html, /data-param="mt_tower:levels"/);
+  assert.match(html, /data-signal="mt_tower:toggle"/);
+  assert.equal(MT.paramValue(ws.live.tiles.mt_tower, ws.live.tiles.mt_tower.params.find((p) => p.id === "levels")), beforeValue);
+
+  const rollback = MT.rollback(ws, committed.receipt.rollback_token);
+  assert.ok(rollback.ok && rollback.exact);
+  assert.equal(MT.structHash(ws.live), before);
+});
