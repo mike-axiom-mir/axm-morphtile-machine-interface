@@ -33,6 +33,7 @@ const ELEMENT_FIELDS = Object.freeze({
 });
 const TILE_ID = /^[A-Za-z0-9_-]+$/;
 const TILE_PATH = /^[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/;
+const ARRAY_INDEX = /^(0|[1-9][0-9]*)$/;
 const MAX_LAYOUT_NODES = 64;
 const MAX_LAYOUT_DEPTH = 6;
 
@@ -46,6 +47,81 @@ class InterfaceIntentError extends Error {
 
 function isPlainObject(value) {
   return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function sourceIntegrityError(path, detail) {
+  return new InterfaceIntentError(
+    "HOLD_INTERFACE_INTENT_NONPORTABLE_VALUE",
+    path + " is not portable authored data" + (detail ? ": " + detail : "")
+  );
+}
+
+function portablePath(parent, key, isArray) {
+  return isArray ? parent + "[" + key + "]" : parent + "." + key;
+}
+
+function copyPortableIntentValue(value, path, seen) {
+  if (value === null || typeof value === "string" || typeof value === "boolean") return value;
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) {
+      throw new InterfaceIntentError(
+        "HOLD_INTERFACE_INTENT_NONFINITE_VALUE",
+        path + " must be finite portable authored data"
+      );
+    }
+    if (Object.is(value, -0)) throw sourceIntegrityError(path, "negative zero would be rewritten by JSON transport");
+    return value;
+  }
+  if (value === undefined || typeof value === "function" || typeof value === "symbol" || typeof value === "bigint") {
+    throw sourceIntegrityError(path, "unsupported " + typeof value + " value");
+  }
+  if (typeof value !== "object") throw sourceIntegrityError(path, "unsupported value type");
+
+  const stack = seen || new WeakSet();
+  if (stack.has(value)) throw sourceIntegrityError(path, "cyclic data is not portable");
+
+  const array = Array.isArray(value);
+  const prototype = Object.getPrototypeOf(value);
+  if (array) {
+    if (prototype !== Array.prototype) throw sourceIntegrityError(path, "array subclasses are not portable authored data");
+  } else if (prototype !== Object.prototype && prototype !== null) {
+    throw sourceIntegrityError(path, "object must have Object.prototype or null prototype");
+  }
+
+  const ownKeys = Reflect.ownKeys(value);
+  if (ownKeys.some((key) => typeof key === "symbol")) throw sourceIntegrityError(path, "symbol-keyed fields are not portable");
+
+  let arrayLength = null;
+  if (array) {
+    const lengthDescriptor = Object.getOwnPropertyDescriptor(value, "length");
+    if (!lengthDescriptor || !Object.prototype.hasOwnProperty.call(lengthDescriptor, "value")) {
+      throw sourceIntegrityError(path, "array length must be a data property");
+    }
+    arrayLength = lengthDescriptor.value;
+    const indexKeys = ownKeys.filter((key) => key !== "length");
+    if (indexKeys.some((key) => !ARRAY_INDEX.test(key) || Number(key) >= arrayLength)) {
+      throw sourceIntegrityError(path, "arrays may contain only contiguous indexed values");
+    }
+    if (indexKeys.length !== arrayLength) throw sourceIntegrityError(path, "sparse arrays are not portable authored data");
+  }
+
+  stack.add(value);
+  const copy = array ? new Array(arrayLength) : {};
+  try {
+    for (const key of ownKeys) {
+      if (array && key === "length") continue;
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      const at = portablePath(path, key, array);
+      if (!descriptor || descriptor.get || descriptor.set || !Object.prototype.hasOwnProperty.call(descriptor, "value")) {
+        throw sourceIntegrityError(at, "accessor-backed fields are not accepted");
+      }
+      if (!descriptor.enumerable) throw sourceIntegrityError(at, "non-enumerable authored fields are not accepted");
+      copy[key] = copyPortableIntentValue(descriptor.value, at, stack);
+    }
+  } finally {
+    stack.delete(value);
+  }
+  return copy;
 }
 
 function assertOnlyFields(value) {
@@ -123,20 +199,24 @@ function normalizeInterfaceIntent(intent) {
   if (!isPlainObject(intent)) {
     throw new InterfaceIntentError("HOLD_INTERFACE_INTENT_INVALID", "intent must be an object");
   }
-  assertOnlyFields(intent);
 
-  if (intent.tile_path !== undefined) {
-    if (typeof intent.tile_path !== "string" || !TILE_PATH.test(intent.tile_path)) {
+  // Establish source integrity before any authored field is read. The previous
+  // JSON clone could invoke toJSON/accessors or silently rewrite/drop values.
+  const authored = copyPortableIntentValue(intent, "intent");
+  assertOnlyFields(authored);
+
+  if (authored.tile_path !== undefined) {
+    if (typeof authored.tile_path !== "string" || !TILE_PATH.test(authored.tile_path)) {
       throw new InterfaceIntentError("HOLD_INTERFACE_TILE_PATH_INVALID", "intent.tile_path must be a MorphTile path of [A-Za-z0-9_-]+ segments separated by /");
     }
   }
 
   for (const field of ["title", "text", "readout_label", "control_label", "action_label"]) {
-    assertString(intent[field], "intent." + field);
+    assertString(authored[field], "intent." + field);
   }
 
-  const elements = normalizeElements(intent.elements);
-  if (elements !== undefined && LEGACY_CONTENT_FIELDS.some((field) => intent[field] !== undefined)) {
+  const elements = normalizeElements(authored.elements);
+  if (elements !== undefined && LEGACY_CONTENT_FIELDS.some((field) => authored[field] !== undefined)) {
     throw new InterfaceIntentError(
       "HOLD_INTERFACE_CONTENT_AMBIGUOUS",
       "intent.elements cannot be mixed with legacy text/readout/control/action fields because authored order would be ambiguous"
@@ -149,26 +229,25 @@ function normalizeInterfaceIntent(intent) {
     ["action", "action_label"]
   ];
   for (const [binding, label] of pairs) {
-    if (intent[label] !== undefined && (intent[binding] === undefined || intent[binding] === null)) {
+    if (authored[label] !== undefined && (authored[binding] === undefined || authored[binding] === null)) {
       throw new InterfaceIntentError("HOLD_INTERFACE_ORPHAN_LABEL", "intent." + label + " requires intent." + binding);
     }
   }
 
-  const hasInteractiveLegacy = ["readout", "control", "action"].some((key) => intent[key] !== undefined && intent[key] !== null);
+  const hasInteractiveLegacy = ["readout", "control", "action"].some((key) => authored[key] !== undefined && authored[key] !== null);
   const hasInteractiveElements = !!(elements && elements.some(function containsInteractive(element) {
     if (element.kind === "row" || element.kind === "group") return element.children.some(containsInteractive);
     return element.kind !== "text";
   }));
-  if (intent.bindings !== undefined && !hasInteractiveLegacy && !hasInteractiveElements) {
+  if (authored.bindings !== undefined && !hasInteractiveLegacy && !hasInteractiveElements) {
     throw new InterfaceIntentError(
       "HOLD_INTERFACE_ORPHAN_BINDINGS",
       "intent.bindings requires at least one requested readout, control or action"
     );
   }
 
-  const normalized = JSON.parse(JSON.stringify(intent));
-  if (elements !== undefined) normalized.elements = elements;
-  return normalized;
+  if (elements !== undefined) authored.elements = elements;
+  return authored;
 }
 
 module.exports = {
@@ -180,6 +259,7 @@ module.exports = {
   MAX_LAYOUT_NODES,
   MAX_LAYOUT_DEPTH,
   InterfaceIntentError,
+  copyPortableIntentValue,
   normalizeElements,
   normalizeInterfaceIntent
 };
