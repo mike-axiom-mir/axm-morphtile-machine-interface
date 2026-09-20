@@ -2,7 +2,7 @@
 
 const { assertRequest, result } = require("./envelope");
 const { InterfaceIntentError, TILE_PATH, normalizeInterfaceIntent } = require("./interface-intent");
-const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.3" };
+const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.4" };
 const PRESENTATION_MODES = new Set(["screen", "docked", "floating", "fullscreen", "embedded", "world", "tile"]);
 const DOCKS = new Set(["left", "right", "top", "bottom"]);
 const PRESENTATION_KEYS = new Set(["mode", "dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]);
@@ -52,7 +52,7 @@ function requestedBindings(intent) {
   if (intent.control !== undefined) requested.controls.push(intent.control);
   const collect = (element) => {
     if (element.kind === "readout" || element.kind === "meter") requested.readouts.push(element.binding);
-    else if (element.kind === "when") {
+    else if (element.kind === "when" || element.kind === "repeat") {
       requested.readouts.push(element.binding);
       for (const child of element.children) collect(child);
     } else if (element.kind === "action") requested.actions.push(element.binding);
@@ -128,6 +128,13 @@ function nodeForElement(element) {
   if (element.kind === "row") return { row: element.children.map(nodeForElement) };
   if (element.kind === "group") return { group: element.children.map(nodeForElement) };
   if (element.kind === "when") return { group: element.children.map(nodeForElement), when: ["var", element.binding] };
+  if (element.kind === "repeat") {
+    return {
+      repeat: ["max", 0, ["min", element.max, ["floor", ["/", ["var", element.binding], element.step]]]],
+      as: "i",
+      body: element.children.map(nodeForElement)
+    };
+  }
   const label = element.label !== undefined ? element.label : element.binding;
   if (element.kind === "readout") return { value: element.binding, label };
   if (element.kind === "meter") return { meter: ["var", element.binding], min: element.min, max: element.max, label };
@@ -210,7 +217,7 @@ function run(request) {
       evidence: [{
         kind: "AUTHORITY",
         status: "PASS",
-        check: "candidate carries only validated authored interface text, bounded nested relative/conditional layout, declared symbolic bindings and presentation descriptors; no copied canonical or session state; target-local and runtime-relevant anchor proof remain explicit dependencies"
+        check: "candidate carries only validated authored interface text, bounded nested relative/conditional/repeated layout, declared symbolic bindings and presentation descriptors; no copied canonical or session state; target-local and runtime-relevant anchor proof remain explicit dependencies"
       }],
       warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
     });
@@ -220,7 +227,7 @@ function run(request) {
   return result(request, MACHINE, "CANDIDATE", {
     candidate: { schema: "morphtile.view-operation/v0.5", operation: viewOperation },
     dependencies,
-    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains validated authored interface text plus bounded nested relative/conditional layout and declared symbolic bindings with no copied state values; target-local proof remains an explicit dependency" }],
+    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains validated authored interface text plus bounded nested relative/conditional/repeated layout and declared symbolic bindings with no copied state values; target-local proof remains an explicit dependency" }],
     warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
   });
 }
