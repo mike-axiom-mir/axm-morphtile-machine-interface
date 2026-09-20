@@ -1,7 +1,8 @@
 "use strict";
 
 const { assertRequest, result } = require("./envelope");
-const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.2.0" };
+const { TILE_ID, normalizeInterfaceIntent } = require("./interface-intent");
+const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.3.0" };
 const PRESENTATION_MODES = new Set(["screen", "docked", "floating", "fullscreen", "embedded", "world", "tile"]);
 const DOCKS = new Set(["left", "right", "top", "bottom"]);
 const PRESENTATION_KEYS = new Set(["mode", "dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]);
@@ -21,7 +22,7 @@ function normalizePlacement(value) {
   if (value.preferred_size != null && (!finiteVector(value.preferred_size, 2) || value.preferred_size.some((n) => n <= 0))) return { ok: false, error: "placement.preferred_size must be two positive numbers" };
   if (value.preferred_position != null && !(finiteVector(value.preferred_position, 2) || finiteVector(value.preferred_position, 3))) return { ok: false, error: "placement.preferred_position must be two or three numbers" };
   if (value.user_adjustable != null && typeof value.user_adjustable !== "boolean") return { ok: false, error: "placement.user_adjustable must be boolean" };
-  if (value.anchor != null && typeof value.anchor !== "string") return { ok: false, error: "placement.anchor must be a tile path string" };
+  if (value.anchor != null && (typeof value.anchor !== "string" || !TILE_ID.test(value.anchor))) return { ok: false, error: "placement.anchor must match [A-Za-z0-9_-]+" };
 
   const placement = { mode: value.mode };
   for (const key of ["dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]) {
@@ -45,9 +46,9 @@ function normalizeBindings(value) {
 }
 
 function validateBindings(intent) {
-  const wantsReadout = intent.readout !== undefined && intent.readout !== null;
-  const wantsAction = intent.action !== undefined && intent.action !== null;
-  const wantsControl = intent.control !== undefined && intent.control !== null;
+  const wantsReadout = intent.readout !== undefined;
+  const wantsAction = intent.action !== undefined;
+  const wantsControl = intent.control !== undefined;
   if (!wantsReadout && !wantsAction && !wantsControl) return { ok: true, value: { readouts: [], actions: [], controls: [] } };
   const bindings = normalizeBindings(intent.bindings);
   if (!bindings.ok) return bindings;
@@ -66,18 +67,39 @@ function validateBindings(intent) {
   return bindings;
 }
 
+function labelFor(intent, labelField, fallback) {
+  return intent[labelField] !== undefined ? intent[labelField] : fallback;
+}
+
 function buildView(intent) {
   const body = [];
-  if (intent.readout) body.push({ value: intent.readout, label: intent.readout_label || intent.readout });
-  if (intent.control) body.push({ control: intent.control, label: intent.control_label || intent.control });
-  if (intent.action) body.push({ button: intent.action, label: intent.action_label || intent.action });
-  if (!body.length) body.push({ text: intent.text || "Interface candidate" });
-  return { op: "view.set", id: intent.tile_path, view: { title: intent.title || "Interface", body } };
+  if (intent.text !== undefined) body.push({ text: intent.text });
+  if (intent.readout) body.push({ value: intent.readout, label: labelFor(intent, "readout_label", intent.readout) });
+  if (intent.control) body.push({ control: intent.control, label: labelFor(intent, "control_label", intent.control) });
+  if (intent.action) body.push({ button: intent.action, label: labelFor(intent, "action_label", intent.action) });
+  if (!body.length) body.push({ text: "Interface candidate" });
+  return {
+    op: "view.set",
+    id: intent.tile_path,
+    view: {
+      title: intent.title !== undefined ? intent.title : "Interface",
+      body
+    }
+  };
 }
 
 function run(request) {
   assertRequest(request);
-  const intent = request.intent || {};
+
+  let intent;
+  try {
+    intent = normalizeInterfaceIntent(request.intent);
+  } catch (error) {
+    return result(request, MACHINE, "HOLD", {
+      holds: [{ code: error && error.code ? error.code : "HOLD_INTERFACE_INTENT_INVALID", detail: error && error.message ? error.message : String(error) }]
+    });
+  }
+
   if (!intent.tile_path) return result(request, MACHINE, "HOLD", { holds: [{ code: "HOLD_TILE_PATH_REQUIRED" }] });
 
   const bindings = validateBindings(intent);
@@ -106,7 +128,7 @@ function run(request) {
       evidence: [{
         kind: "AUTHORITY",
         status: "PASS",
-        check: "candidate carries only declared symbolic readout/action/control bindings plus presentation descriptors; no copied canonical or session state"
+        check: "candidate carries only validated authored interface text, declared symbolic bindings and presentation descriptors; no copied canonical or session state"
       }],
       warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
     });
@@ -114,9 +136,19 @@ function run(request) {
 
   return result(request, MACHINE, "CANDIDATE", {
     candidate: { schema: "morphtile.view-operation/v0.4", operation: viewOperation },
-    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains only declared symbolic readout/action/control bindings and no copied state values" }],
+    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains validated authored interface text plus declared symbolic bindings and no copied state values" }],
     warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
   });
 }
 
-module.exports = { MACHINE, PRESENTATION_MODES, PRESENTATION_KEYS, BINDING_KEYS, normalizePlacement, normalizeBindings, validateBindings, run };
+module.exports = {
+  MACHINE,
+  PRESENTATION_MODES,
+  PRESENTATION_KEYS,
+  BINDING_KEYS,
+  normalizePlacement,
+  normalizeBindings,
+  validateBindings,
+  buildView,
+  run
+};
