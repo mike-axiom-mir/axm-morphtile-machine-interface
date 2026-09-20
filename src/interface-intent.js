@@ -1,5 +1,7 @@
 "use strict";
 
+const { types: { isProxy } } = require("node:util");
+
 const INTERFACE_INTENT_FIELDS = Object.freeze([
   "tile_path",
   "title",
@@ -76,6 +78,9 @@ function copyPortableIntentValue(value, path, seen) {
     throw sourceIntegrityError(path, "unsupported " + typeof value + " value");
   }
   if (typeof value !== "object") throw sourceIntegrityError(path, "unsupported value type");
+  if (isProxy(value)) {
+    throw sourceIntegrityError(path, "Proxy objects are not accepted because reflective inspection could execute caller code");
+  }
 
   const stack = seen || new WeakSet();
   if (stack.has(value)) throw sourceIntegrityError(path, "cyclic data is not portable");
@@ -199,6 +204,9 @@ function normalizeElements(value, depth, state) {
 }
 
 function normalizeInterfaceIntent(intent) {
+  if (isProxy(intent)) {
+    throw sourceIntegrityError("intent", "Proxy objects are not accepted because reflective inspection could execute caller code");
+  }
   if (!isPlainObject(intent)) {
     throw new InterfaceIntentError("HOLD_INTERFACE_INTENT_INVALID", "intent must be an object");
   }
