@@ -142,6 +142,7 @@ test("authored explanatory text survives beside a canonical control in the pinne
   assertPinnedRuntime();
   const MT = require(path.resolve(corePath));
   const ws = MT.createWorkspace(MT.seedWorld());
+  const before = MT.structHash(ws.live);
   const tower = ws.live.tiles.mt_tower;
   const param = tower.params.find((p) => p.id === "levels");
   const beforeValue = MT.paramValue(tower, param);
