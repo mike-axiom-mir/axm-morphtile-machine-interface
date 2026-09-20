@@ -11,6 +11,7 @@ test("preserves the original view-only candidate when no placement is requested"
   assert.deepEqual(operation, { op: "view.set", id: "mt_counter", view: { title: "Counter", body: [{ value: "count", label: "count" }, { button: "increment", label: "increment" }] } });
   assert.ok(!JSON.stringify(out.candidate).includes("authoritative_state"));
   assert.equal(out.warnings[0].code, "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL");
+  assert.equal(out.warnings[1].code, "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET");
 });
 
 test("emits view.set plus presentation.set without copying top-level canonical or session state", () => {
@@ -76,5 +77,53 @@ test("holds authority snapshots nested inside placement instead of silently drop
   assert.equal(out.holds[0].code, "HOLD_INVALID_PRESENTATION_PLACEMENT");
   assert.match(out.holds[0].detail, /canonical_state/);
   assert.match(out.holds[0].detail, /session_state/);
+  assert.equal(out.candidate, null);
+});
+
+test("interactive controls require an explicit symbolic binding declaration", () => {
+  const out = run({
+    ...request,
+    request_id: "interface-bindings-required",
+    intent: { tile_path: "mt_counter", title: "Counter", action: "increment" }
+  });
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INVALID_INTERFACE_BINDING");
+  assert.match(out.holds[0].detail, /bindings/);
+  assert.equal(out.candidate, null);
+});
+
+test("undeclared action names hold instead of creating a plausible but ungrounded button", () => {
+  const out = run({
+    ...request,
+    request_id: "interface-undeclared-action",
+    intent: {
+      tile_path: "mt_counter",
+      title: "Counter",
+      action: "reset_everything",
+      bindings: { readouts: ["count"], actions: ["increment"] }
+    }
+  });
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INVALID_INTERFACE_BINDING");
+  assert.match(out.holds[0].detail, /reset_everything/);
+  assert.equal(out.candidate, null);
+});
+
+test("binding declarations carry names only and fail closed on authority-shaped extras", () => {
+  const out = run({
+    ...request,
+    request_id: "interface-binding-authority-held",
+    intent: {
+      ...request.intent,
+      bindings: {
+        readouts: ["count"],
+        actions: ["increment"],
+        state_values: { count: 424242 }
+      }
+    }
+  });
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INVALID_INTERFACE_BINDING");
+  assert.match(out.holds[0].detail, /state_values/);
   assert.equal(out.candidate, null);
 });
