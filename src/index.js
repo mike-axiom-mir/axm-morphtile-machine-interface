@@ -4,6 +4,7 @@ const { assertRequest, result } = require("./envelope");
 const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.2.0" };
 const PRESENTATION_MODES = new Set(["screen", "docked", "floating", "fullscreen", "embedded", "world", "tile"]);
 const DOCKS = new Set(["left", "right", "top", "bottom"]);
+const PRESENTATION_KEYS = new Set(["mode", "dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]);
 
 function finiteVector(value, length) {
   return Array.isArray(value) && value.length === length && value.every((n) => typeof n === "number" && Number.isFinite(n));
@@ -11,6 +12,8 @@ function finiteVector(value, length) {
 
 function normalizePlacement(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return { ok: false, error: "placement must be an object" };
+  const unknownKeys = Object.keys(value).filter((key) => !PRESENTATION_KEYS.has(key)).sort();
+  if (unknownKeys.length) return { ok: false, error: `placement contains unsupported field(s): ${unknownKeys.join(", ")}` };
   if (!PRESENTATION_MODES.has(value.mode)) return { ok: false, error: "placement.mode must be screen|docked|floating|fullscreen|embedded|world|tile" };
   if (value.dock != null && !DOCKS.has(value.dock)) return { ok: false, error: "placement.dock must be left|right|top|bottom" };
   if (value.preferred_size != null && (!finiteVector(value.preferred_size, 2) || value.preferred_size.some((n) => n <= 0))) return { ok: false, error: "placement.preferred_size must be two positive numbers" };
@@ -70,4 +73,4 @@ function run(request) {
   });
 }
 
-module.exports = { MACHINE, PRESENTATION_MODES, normalizePlacement, run };
+module.exports = { MACHINE, PRESENTATION_MODES, PRESENTATION_KEYS, normalizePlacement, run };
