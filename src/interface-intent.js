@@ -37,11 +37,13 @@ const ELEMENT_FIELDS = Object.freeze({
   row: Object.freeze(["kind", "children"]),
   group: Object.freeze(["kind", "children"]),
   when: Object.freeze(["kind", "binding", "comparison", "threshold", "expected", "children"]),
-  repeat: Object.freeze(["kind", "binding", "step", "max", "children"])
+  repeat: Object.freeze(["kind", "binding", "step", "max", "children"]),
+  repeat_when: Object.freeze(["kind", "source", "equals", "children"])
 });
 const WHEN_THRESHOLD_COMPARISONS = Object.freeze(["above", "at_least", "below", "at_most"]);
 const WHEN_EQUALITY_COMPARISONS = Object.freeze(["equals", "not_equals"]);
 const WHEN_COMPARISONS = Object.freeze([...WHEN_THRESHOLD_COMPARISONS, ...WHEN_EQUALITY_COMPARISONS]);
+const REPEAT_LOCAL_SOURCES = Object.freeze(["index", "count"]);
 const TILE_ID = /^[A-Za-z0-9_-]+$/;
 const TILE_PATH = /^[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/;
 const ARRAY_INDEX = /^(0|[1-9][0-9]*)$/;
@@ -121,9 +123,6 @@ function copyPortableIntentValue(value, path, seen) {
   }
 
   stack.add(value);
-  // Null-prototype copies preserve authored keys such as __proto__ as data.
-  // A normal object assignment could invoke Object.prototype.__proto__ and
-  // silently turn an unknown authored field into prototype mutation.
   const copy = array ? new Array(arrayLength) : Object.create(null);
   try {
     for (const key of ownKeys) {
@@ -158,15 +157,16 @@ function assertString(value, field) {
   }
 }
 
-function normalizeElements(value, depth, state, ownerRoot) {
+function normalizeElements(value, depth, state, ownerRoot, repeatMax) {
   if (value === undefined) return undefined;
   const atDepth = depth === undefined ? 0 : depth;
+  const nearestRepeatMax = repeatMax === undefined ? null : repeatMax;
   const budget = state || { count: 0 };
   if (!Array.isArray(value) || value.length === 0) {
     throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENTS_INVALID", "interface element lists must be non-empty arrays when supplied");
   }
   if (atDepth > MAX_LAYOUT_DEPTH) {
-    throw new InterfaceIntentError("HOLD_INTERFACE_LAYOUT_TOO_DEEP", "nested row/group/when/repeat layout may be at most " + MAX_LAYOUT_DEPTH + " levels deep");
+    throw new InterfaceIntentError("HOLD_INTERFACE_LAYOUT_TOO_DEEP", "nested row/group/when/repeat/repeat_when layout may be at most " + MAX_LAYOUT_DEPTH + " levels deep");
   }
 
   return value.map((element, index) => {
@@ -179,7 +179,7 @@ function normalizeElements(value, depth, state, ownerRoot) {
       throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + " must be an object");
     }
     if (typeof element.kind !== "string" || !Object.prototype.hasOwnProperty.call(ELEMENT_FIELDS, element.kind)) {
-      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".kind must be text|readout|meter|control|action|tile|row|group|when|repeat");
+      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".kind must be text|readout|meter|control|action|tile|row|group|when|repeat|repeat_when");
     }
     const allowed = ELEMENT_FIELDS[element.kind];
     const unknown = Object.keys(element).filter((key) => !allowed.includes(key)).sort();
@@ -199,6 +199,41 @@ function normalizeElements(value, depth, state, ownerRoot) {
       const normalized = { kind: "text", text: element.text };
       if (element.strong !== undefined) normalized.strong = element.strong;
       return normalized;
+    }
+    if (element.kind === "repeat_when") {
+      if (nearestRepeatMax === null) {
+        throw new InterfaceIntentError(
+          "HOLD_INTERFACE_REPEAT_SCOPE",
+          at + " may only inspect the nearest lexical repeat scope; it is not a canonical-state binding"
+        );
+      }
+      if (!REPEAT_LOCAL_SOURCES.includes(element.source)) {
+        throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".source must be index|count");
+      }
+      if (!Number.isInteger(element.equals)) {
+        throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".equals must be an integer");
+      }
+      if (element.source === "index" && (element.equals < 0 || element.equals >= nearestRepeatMax)) {
+        throw new InterfaceIntentError(
+          "HOLD_INTERFACE_REPEAT_SCOPE",
+          at + ".equals for index must be from 0 through " + (nearestRepeatMax - 1) + " for the nearest repeat"
+        );
+      }
+      if (element.source === "count" && (element.equals < 1 || element.equals > nearestRepeatMax)) {
+        throw new InterfaceIntentError(
+          "HOLD_INTERFACE_REPEAT_SCOPE",
+          at + ".equals for count must be from 1 through " + nearestRepeatMax + " for the nearest repeat"
+        );
+      }
+      if (!Array.isArray(element.children) || element.children.length === 0) {
+        throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".children must be a non-empty array");
+      }
+      return {
+        kind: "repeat_when",
+        source: element.source,
+        equals: element.equals,
+        children: normalizeElements(element.children, atDepth + 1, budget, ownerRoot, nearestRepeatMax)
+      };
     }
     if (element.kind === "tile") {
       const hasId = element.tile_id !== undefined;
@@ -272,7 +307,8 @@ function normalizeElements(value, depth, state, ownerRoot) {
           throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".max must be an integer from 1 through " + MAX_REPEAT_ITEMS);
         }
       }
-      const normalized = { kind: element.kind, children: normalizeElements(element.children, atDepth + 1, budget, ownerRoot) };
+      const childRepeatMax = element.kind === "repeat" ? element.max : nearestRepeatMax;
+      const normalized = { kind: element.kind, children: normalizeElements(element.children, atDepth + 1, budget, ownerRoot, childRepeatMax) };
       if (element.kind === "when") {
         normalized.binding = element.binding;
         if (element.comparison !== undefined) {
@@ -318,7 +354,7 @@ function normalizeElements(value, depth, state, ownerRoot) {
 function expandedLayoutNodeCount(elements) {
   if (!elements) return 0;
   const countNode = (element) => {
-    if (element.kind === "row" || element.kind === "group" || element.kind === "when") {
+    if (element.kind === "row" || element.kind === "group" || element.kind === "when" || element.kind === "repeat_when") {
       return 1 + element.children.reduce((sum, child) => sum + countNode(child), 0);
     }
     if (element.kind === "repeat") {
@@ -338,8 +374,6 @@ function normalizeInterfaceIntent(intent) {
     throw new InterfaceIntentError("HOLD_INTERFACE_INTENT_INVALID", "intent must be an object");
   }
 
-  // Establish source integrity before any authored field is read. The previous
-  // JSON clone could invoke toJSON/accessors or silently rewrite/drop values.
   const authored = copyPortableIntentValue(intent, "intent");
   assertOnlyFields(authored);
 
@@ -374,7 +408,7 @@ function normalizeInterfaceIntent(intent) {
   }
 
   const ownerRoot = authored.tile_path ? authored.tile_path.split("/")[0] : undefined;
-  const elements = normalizeElements(authored.elements, undefined, undefined, ownerRoot);
+  const elements = normalizeElements(authored.elements, undefined, undefined, ownerRoot, null);
   if (elements !== undefined && expandedLayoutNodeCount(elements) > MAX_LAYOUT_NODES) {
     throw new InterfaceIntentError(
       "HOLD_INTERFACE_REPEAT_EXPANSION_TOO_LARGE",
@@ -401,7 +435,7 @@ function normalizeInterfaceIntent(intent) {
 
   const hasInteractiveLegacy = ["readout", "control", "action"].some((key) => authored[key] !== undefined && authored[key] !== null);
   const hasInteractiveElements = !!(elements && elements.some(function containsInteractive(element) {
-    if (element.kind === "row" || element.kind === "group") return element.children.some(containsInteractive);
+    if (element.kind === "row" || element.kind === "group" || element.kind === "repeat_when") return element.children.some(containsInteractive);
     if (element.kind === "text" || element.kind === "tile") return false;
     return true;
   }));
@@ -423,6 +457,7 @@ module.exports = {
   WHEN_THRESHOLD_COMPARISONS,
   WHEN_EQUALITY_COMPARISONS,
   WHEN_COMPARISONS,
+  REPEAT_LOCAL_SOURCES,
   TILE_ID,
   TILE_PATH,
   MAX_LAYOUT_NODES,
