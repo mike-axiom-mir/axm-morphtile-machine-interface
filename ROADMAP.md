@@ -8,7 +8,10 @@
 - [x] Expose a bounded static subset of MorphTile-native view styling: normalized RGB `accent`, finite `width >= 1`, and boolean text `strong`, without adding CSS or host authority.
 - [x] Independently verify Interface 0.5.8 exact-head bounded view styling and integrate it through the Creation Director.
 - [x] Reject `dock` outside `mode: "docked"` while preserving MorphTile's native docked-edge default when `dock` is omitted.
-- [ ] Independently verify Interface 0.5.9 exact-head mode-owned docking semantics before Director integration.
+- [x] Independently verify and integrate Interface 0.5.9 mode-owned docking semantics.
+- [x] Add bounded numeric-threshold conditional visibility over MorphTile-native comparison expressions and integrate Interface 0.5.10.
+- [x] Add bounded scalar equality/inequality conditional visibility over MorphTile-native strict equality operators without exposing arbitrary expression authoring.
+- [ ] Independently verify the exact Interface 0.5.11 equality candidate before Director integration.
 - [ ] Define a separate proof/authority contract before any cross-root tile composition is exposed; do not infer cross-root authority from same-root paths.
 - [ ] Add host-side visual evidence for the supported presentation modes without turning host/session state into canonical matter.
 - [ ] Add presentation z-order authoring only after a canonical MorphTile substrate primitive/schema is evidenced; do not invent a private Interface-only ordering contract.
@@ -16,4 +19,4 @@
 - [x] Deepen safe action-binding fixtures across real input, internal rule, attach socket, output signal and missing socket names while keeping state references symbolic rather than copied.
 - [ ] Re-test and re-pin before widening MorphTile compatibility beyond the exact verified core revision.
 
-Do not add arbitrary responsive-layout claims, speculative host authority, arbitrary CSS/expression authoring, duplicate embedded-tile state, or permissionless bridge behavior merely to make the repository look complete.
+Do not add arbitrary responsive-layout claims, speculative host authority, arbitrary CSS/general expression authoring, duplicate embedded-tile state, state-to-state predicates, object/array equality predicates, or permissionless bridge behavior merely to make the repository look complete.
