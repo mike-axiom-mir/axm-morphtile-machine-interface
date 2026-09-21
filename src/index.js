@@ -97,7 +97,7 @@ function targetProofDependencies(intent, placement) {
 function validateBindings(intent) {
   const requested = requestedBindings(intent);
   const wantsBindings = requested.readouts.length || requested.actions.length || requested.controls.length;
-  if (!wantsBindings) return { ok: true, value: { readouts: [], actions: [], controls: [] } };
+  if (!wantsBindings && intent.bindings === undefined) return { ok: true, value: { readouts: [], actions: [], controls: [] } };
   const bindings = normalizeBindings(intent.bindings);
   if (!bindings.ok) return bindings;
 
