@@ -19,7 +19,7 @@
 - [ ] Expose direct repeat-local value rendering only after MorphTile core truthfully propagates lexical repeat scope into expression-backed view text; core PR #17 is the current HOLD lane.
 - [ ] Keep expression-backed meter/button/control labels under the same core lexical-scope rule when nested in repeats; do not work around the core by copying repeat locals or action/control authority into Interface matter.
 - [ ] Define a separate proof/authority contract before any cross-root tile composition is exposed; do not infer cross-root authority from same-root paths.
-- [ ] Add host-side visual evidence for supported presentation modes without turning host/session state into canonical matter.
+- [x] Add pinned host-side structural vnode/HTML evidence for every Interface-supported presentation mode, including receiver-owned dock defaults and session-only user adjustments, while keeping aesthetic quality NOT_TESTED and host/session state non-canonical.
 - [ ] Add presentation z-order/layer authoring only after a canonical MorphTile substrate primitive/schema is evidenced; do not invent a private Interface-only ordering contract.
 - [x] Add negative integration fixtures for missing anchors and unsupported host-mode HOLD outcomes.
 - [x] Deepen safe action-binding fixtures across real input, internal rule, attach socket, output signal and missing socket names while keeping state references symbolic rather than copied.
