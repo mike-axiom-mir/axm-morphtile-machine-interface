@@ -2,7 +2,7 @@
 
 const { assertRequest, result } = require("./envelope");
 const { InterfaceIntentError, TILE_PATH, normalizeInterfaceIntent } = require("./interface-intent");
-const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.13" };
+const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.14" };
 const PRESENTATION_MODES = new Set(["screen", "docked", "floating", "fullscreen", "embedded", "world", "tile"]);
 const DOCKS = new Set(["left", "right", "top", "bottom"]);
 const PRESENTATION_KEYS = new Set(["mode", "dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]);
@@ -19,13 +19,13 @@ function normalizePlacement(value) {
   const unknownKeys = Object.keys(value).filter((key) => !PRESENTATION_KEYS.has(key)).sort();
   if (unknownKeys.length) return { ok: false, error: `placement contains unsupported field(s): ${unknownKeys.join(", ")}` };
   if (!PRESENTATION_MODES.has(value.mode)) return { ok: false, error: "placement.mode must be screen|docked|floating|fullscreen|embedded|world|tile" };
-  if (value.dock != null && !DOCKS.has(value.dock)) return { ok: false, error: "placement.dock must be left|right|top|bottom" };
-  if (value.dock != null && value.mode !== "docked") return { ok: false, error: "placement.dock is consumed only by docked presentation mode" };
-  if (value.preferred_size != null && (!finiteVector(value.preferred_size, 2) || value.preferred_size.some((n) => n <= 0))) return { ok: false, error: "placement.preferred_size must be two positive numbers" };
-  if (value.preferred_position != null && !(finiteVector(value.preferred_position, 2) || finiteVector(value.preferred_position, 3))) return { ok: false, error: "placement.preferred_position must be two or three numbers" };
-  if (value.user_adjustable != null && typeof value.user_adjustable !== "boolean") return { ok: false, error: "placement.user_adjustable must be boolean" };
-  if (value.anchor != null && (typeof value.anchor !== "string" || !TILE_PATH.test(value.anchor))) return { ok: false, error: "placement.anchor must be a MorphTile path of [A-Za-z0-9_-]+ segments separated by /" };
-  if (value.anchor != null && value.mode !== "tile") return { ok: false, error: "placement.anchor is consumed only by tile presentation mode" };
+  if (value.dock !== undefined && !DOCKS.has(value.dock)) return { ok: false, error: "placement.dock must be left|right|top|bottom" };
+  if (value.dock !== undefined && value.mode !== "docked") return { ok: false, error: "placement.dock is consumed only by docked presentation mode" };
+  if (value.preferred_size !== undefined && (!finiteVector(value.preferred_size, 2) || value.preferred_size.some((n) => n <= 0))) return { ok: false, error: "placement.preferred_size must be two positive numbers" };
+  if (value.preferred_position !== undefined && !(finiteVector(value.preferred_position, 2) || finiteVector(value.preferred_position, 3))) return { ok: false, error: "placement.preferred_position must be two or three numbers" };
+  if (value.user_adjustable !== undefined && typeof value.user_adjustable !== "boolean") return { ok: false, error: "placement.user_adjustable must be boolean" };
+  if (value.anchor !== undefined && (typeof value.anchor !== "string" || !TILE_PATH.test(value.anchor))) return { ok: false, error: "placement.anchor must be a MorphTile path of [A-Za-z0-9_-]+ segments separated by /" };
+  if (value.anchor !== undefined && value.mode !== "tile") return { ok: false, error: "placement.anchor is consumed only by tile presentation mode" };
 
   const placement = { mode: value.mode };
   for (const key of ["dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]) {
