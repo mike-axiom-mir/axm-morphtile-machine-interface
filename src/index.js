@@ -132,9 +132,11 @@ function nodeForElement(element) {
     return node;
   }
   if (element.kind === "repeat_when") {
+    const comparison = element.comparison !== undefined ? element.comparison : "equals";
+    const operand = element.value !== undefined ? element.value : element.equals;
     return {
       group: element.children.map(nodeForElement),
-      when: ["==", ["var", element.source === "index" ? "i" : "i_of"], element.equals]
+      when: [WHEN_COMPARISON_OPS[comparison], ["var", element.source === "index" ? "i" : "i_of"], operand]
     };
   }
   if (element.kind === "tile") return { tile: element.tile_path !== undefined ? "/" + element.tile_path : element.tile_id };
