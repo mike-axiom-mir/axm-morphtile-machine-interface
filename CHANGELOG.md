@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.14 — 2026-09-21
+
+- Rejected explicit authored `null` for optional presentation fields `dock`, `preferred_size`, `preferred_position`, `user_adjustable`, and `anchor`; genuine omission remains distinct and preserves MorphTile-owned defaults.
+- Kept existing mode ownership unchanged: `dock` remains docked-only and `anchor` remains tile-only.
+- Preserved explicit false/zero authored values while failing closed on null pseudo-absence instead of allowing invalid canonical presentation matter.
+- Regression-first evidence isolated the producer-validation gap while MorphTile and Assembly integration stayed green; final exact candidate head `55f9ea7e96db0c65c7440550c9f4a7800facd34e` passed all producer lanes.
+- Independent Verification replayed that exact head and the Creation Director integrated PR #27 as Interface main `13ff908b84094e81ee422bf59292fccabfeeea59`.
+- After integration, the Interface receiver harness was re-pinned in a follow-up truth/evidence candidate to current integrated Assembly `92f97d4d9b002c76d37a14910e05e65a60f78de8`; compatibility is claimed only if that exact branch CI passes.
+
 ## 0.5.13 — 2026-09-21
 
 - Extended bounded nearest-repeat `repeat_when` selectors beyond equality shorthand with six named comparisons: `above`, `at_least`, `below`, `at_most`, `equals`, and `not_equals` plus one integer `value`.

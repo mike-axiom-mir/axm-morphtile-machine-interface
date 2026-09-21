@@ -1,35 +1,36 @@
 # Status
 
-- Machine version: 0.5.13
-- State: INTEGRATED BASELINE — main `d1c2ee9d25d9f8db1dbb1c907e9d022928467f70`
+- Machine version: 0.5.14
+- State: INTEGRATED BASELINE — main `13ff908b84094e81ee422bf59292fccabfeeea59`
 - Local tests: `npm test`
 - MorphTile target: v0.4 at `2bdf8eade1376055473b9cc1b11734b72a5566e5`
-- Assembly receiver target: `66eb29fa8a344a20aabce0cb73f1cd302166efd8`
+- Assembly receiver target under current re-pin candidate: `92f97d4d9b002c76d37a14910e05e65a60f78de8`
 - Envelope: provisional v0.1
 - Visual proof: runtime vnode/HTML behavior only; aesthetic host quality remains NOT_TESTED
 
 ## Integrated baseline
 
-Interface 0.5.13 bounded nearest-repeat relational selectors were independently verified and integrated by the Creation Director through PR #25. The merged Interface main is `d1c2ee9d25d9f8db1dbb1c907e9d022928467f70`.
+Interface 0.5.14 authored-null presentation integrity was independently verified and integrated by the Creation Director through PR #27. The merged Interface main is `13ff908b84094e81ee422bf59292fccabfeeea59`.
 
 The integrated machine includes bounded canonical-state readouts, meters, truthy/threshold/equality conditions and repeat generation; tile-owned local and exact same-root composition; native accent/width/strong styling; mode-owned placement descriptors; safe action/control bindings; nearest-repeat lexical equality plus relational selectors; source-tree/depth/expanded-repeat budgets; and exact receiver/core pinning.
 
-The 0.5.13 exact candidate head was `dd93d83f1fc93536851a9cb0025255241172104f`. Actions `35568902190` passed unit, pinned MorphTile integration and Assembly receiver integration before independent Verification and Director integration. The integrated receiver pin remains `66eb29fa8a344a20aabce0cb73f1cd302166efd8`.
+0.5.14 closes a producer source-integrity hole in optional presentation authorship. Explicit authored `null` now fails closed for `dock`, `preferred_size`, `preferred_position`, `user_adjustable`, and `anchor`; genuine omission remains valid and preserves MorphTile-owned defaults. The independently verified exact candidate head was `55f9ea7e96db0c65c7440550c9f4a7800facd34e` before Director integration.
+
+After that integration, Assembly advanced to integrated main `92f97d4d9b002c76d37a14910e05e65a60f78de8`. The current branch re-pins the Interface receiver harness to that exact Assembly head so compatibility is re-earned instead of inferred from the older `dffd3af4222dd3e404b1d21343db347444893eb4` receipt.
 
 ## Current substrate HOLD
 
-MorphTile core PR #17 is the canonical HOLD lane for repeat lexical scope in expression-backed view text. Fresh source inspection shows native repeat establishes lexical `i` / `i_of`, and scoped `when` plus meter evaluation consume that scope, while expression-backed text still resolves through the outer label evaluator. The regression candidate therefore remains a core concern rather than an Interface workaround.
+MorphTile core PR #17 is the canonical HOLD lane for repeat lexical scope in expression-backed view text and node labels. Native repeat establishes lexical `i` / `i_of`, and scoped `when` plus meter value evaluation consume that scope, while expression-backed text and meter/button/control labels still resolve through the outer label evaluator. Core PR #17 remains intentionally red at exact head `8e8dc095ffe9b4a81ed07e05203c8c5ca979dd56`: 195 tests, 193 pass, 2 expected failures.
 
-The same inspection shows meter/button/control labels are also expression-backed through the outer label helper inside repeated nodes. Core PR #17 now carries bounded regression evidence for that broader invariant as well: node-local expression-backed text/labels should evaluate against the current lexical repeat scope without changing action/control authority. This is evidence of a substrate gap, not a claim that the runtime is fixed.
-
-Interface does not expose direct repeat-local value rendering until core genuinely consumes the lexical scope and that core change is independently accepted. Presentation z-order/layer authoring also remains held because current MorphTile core has no evidenced canonical z-order primitive/schema.
+Interface does not expose direct repeat-local value rendering until core genuinely consumes lexical scope and that core change is independently accepted. Presentation z-order/layer authoring also remains held because current MorphTile core has no evidenced canonical z-order primitive/schema.
 
 ## Reusable rules learned
 
+- Authored optional semantic fields have two valid states: absent, or present with a valid value. `null` must not become pseudo-absence when canonical output would preserve it.
+- Receiver-owned defaults remain receiver-owned; producer omission should not be rewritten into guessed canonical defaults.
 - Lexical runtime locals are not canonical state and must not be promoted into target proof obligations or copied state.
 - A bounded producer may reuse a substrate evaluator only for semantics the substrate demonstrably consumes in the same lexical scope.
 - Extend an existing bounded vocabulary before exposing a general expression language.
-- Nearest-scope bounds remain part of the authoring contract even when the underlying evaluator could accept wider values.
 - Expression-backed node labels and the action/control they decorate are separate concerns: fixing label scope must never widen signal or parameter authority.
 - Receiver pins are evidence identities; compatibility must be re-earned against exact tested receiver heads.
 

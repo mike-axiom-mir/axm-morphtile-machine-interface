@@ -3,11 +3,13 @@
 - [x] Add bounded same-container tile-owned view composition over MorphTile's native `{ tile: id }` view primitive without copying target state or bindings.
 - [x] Add explicit same-root full-path tile composition while keeping cross-root composition held behind a separate authority contract.
 - [x] Reject presentation `anchor` outside tile mode and `dock` outside docked mode while preserving meaningful MorphTile defaults by omission.
+- [x] Reject explicit authored `null` for optional presentation descriptors while keeping genuine omission distinct and preserving receiver-owned defaults.
 - [x] Expose bounded MorphTile-native view styling: normalized RGB `accent`, finite `width >= 1`, and boolean text `strong`, without adding CSS or host authority.
 - [x] Add bounded canonical-state truthy, numeric-threshold, and scalar equality/inequality conditional visibility without general expression authoring.
 - [x] Add bounded canonical-state repeat generation with explicit source-tree and worst-case expanded-layout budgets.
 - [x] Add bounded nearest-repeat lexical equality selectors over native `i` / `i_of`; independently verify and integrate Interface 0.5.12.
 - [x] Add bounded nearest-repeat lexical relational selectors over native `i` / `i_of`; independently verify and integrate Interface 0.5.13.
+- [x] Re-pin the Interface receiver harness to current integrated Assembly `92f97d4d9b002c76d37a14910e05e65a60f78de8` and require fresh CI before claiming compatibility.
 - [ ] Expose direct repeat-local value rendering only after MorphTile core truthfully propagates lexical repeat scope into expression-backed view text; core PR #17 is the current HOLD lane.
 - [ ] Keep expression-backed meter/button/control labels under the same core lexical-scope rule when nested in repeats; do not work around the core by copying repeat locals or action/control authority into Interface matter.
 - [ ] Define a separate proof/authority contract before any cross-root tile composition is exposed; do not infer cross-root authority from same-root paths.
