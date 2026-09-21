@@ -45,3 +45,21 @@ test("receiver evidence truth surfaces match the executable Assembly fixture ide
     "the receiver workflow repository must match fixtures/integration-sources.json"
   );
 });
+
+test("repository truth describes evidence state without embedding pull-request lifecycle", () => {
+  const status = read("STATUS.md");
+  const stateLine = lines(status).find((line) => line.startsWith("- State:"));
+  const currentReceiverHeading = lines(status).find((line) => line.startsWith("## Current receiver evidence"));
+
+  assert.ok(stateLine, "STATUS.md must expose one repository state line");
+  assert.doesNotMatch(
+    stateLine,
+    /\bcandidate\b/i,
+    "repository state must remain true before and after merge; PR lifecycle belongs in the PR/handoff, not persistent repository truth"
+  );
+  assert.equal(
+    currentReceiverHeading,
+    "## Current receiver evidence",
+    "current receiver evidence heading must remain lifecycle-neutral rather than becoming stale after merge"
+  );
+});
