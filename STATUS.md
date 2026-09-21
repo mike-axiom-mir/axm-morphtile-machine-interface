@@ -1,24 +1,24 @@
 # Status
 
 - Machine version: 0.5.14
-- State: INTEGRATED BASELINE — version 0.5.14
+- State: RECEIVER-APPLICATION EVIDENCE CANDIDATE — runtime semantics unchanged
 - Local tests: `npm test`
 - MorphTile target: v0.4 at `2bdf8eade1376055473b9cc1b11734b72a5566e5`
-- Assembly receiver evidence target: `9fe8b53daf3e572c596c142859cca2199a976553`
+- Assembly receiver evidence target: `4996d524e05ff50a7305c2ebce81b81954f4ac05`
 - Envelope: provisional v0.1
 - Visual proof: runtime vnode/HTML behavior only; aesthetic host quality remains NOT_TESTED
 
 ## Integrated baseline
 
-Interface 0.5.14 authored-null presentation integrity was independently verified and integrated by the Creation Director through PR #27. The runtime integration commit is `13ff908b84094e81ee422bf59292fccabfeeea59`. Follow-up truth/receiver refresh PR #28 was independently verified and merged at `96dfea316216922dffca872ec083a549e4777c96`; it changed evidence/documentation only, not Interface runtime behavior.
+Interface 0.5.14 authored-null presentation integrity was independently verified and integrated by the Creation Director through PR #27. The runtime integration commit is `13ff908b84094e81ee422bf59292fccabfeeea59`. Follow-up receiver/truth work through PR #31 was independently verified and integrated; current Interface main before this candidate is `798038d20adb2c910e046eaa77c63a64da8a25e8`.
 
 The integrated machine includes bounded canonical-state readouts, meters, truthy/threshold/equality conditions and repeat generation; tile-owned local and exact same-root composition; native accent/width/strong styling; mode-owned placement descriptors; safe action/control bindings; nearest-repeat lexical equality plus relational selectors; source-tree/depth/expanded-repeat budgets; and exact receiver/core pinning.
 
-0.5.14 closes a producer source-integrity hole in optional presentation authorship. Explicit authored `null` now fails closed for `dock`, `preferred_size`, `preferred_position`, `user_adjustable`, and `anchor`; genuine omission remains valid and preserves MorphTile-owned defaults. The independently verified exact candidate head was `55f9ea7e96db0c65c7440550c9f4a7800facd34e` before Director integration.
+0.5.14 closes a producer source-integrity hole in optional presentation authorship. Explicit authored `null` fails closed for `dock`, `preferred_size`, `preferred_position`, `user_adjustable`, and `anchor`; genuine omission remains valid and preserves MorphTile-owned defaults. Explicit authored `false` and numeric zero remain real values where valid.
 
-Assembly's Interface-v0.5 presentation receiver repair was independently re-proved by Interface PR #30 against integrated Assembly `4b7f89f83dff90d07ab6e70b7b40e8623579bbf1` using a real Interface-generated `morphtile.interface-operations/v0.5` positive-control candidate. Independent Verification accepted exact candidate `f78355d9212cc15abb4535edfdd370225ffaaee5` through Verification PR #52, and the Creation Director merged Interface PR #30 to main at `bcfb0189773c5ddf20b7b85887b61995c371c347`.
+Assembly has advanced to integrated main `4996d524e05ff50a7305c2ebce81b81954f4ac05`. Its receiver contract no longer treats `importKit(...).status === READY` as terminal proof: every returned ordered structural operation must execute successfully against an isolated fresh MorphTile receiver before Assembly returns a materialization candidate. Interface PR #32 therefore adds a producer-generated root-local Interface specimen that must survive Assembly folding, local target-proof discharge, MorphTile kit materialization, READY planning, and exact receiver application. This is evidence machinery only; it does not widen Interface runtime/schema/state/permission/bridge authority.
 
-Assembly has since advanced to integrated main `9fe8b53daf3e572c596c142859cca2199a976553`, which preserves upstream-HOLD authority and additionally fails closed on malformed status-less `{ candidate: ... }` wrapper payloads while keeping valid plain-map wrappers compatible. The current Interface candidate refreshes the exact receiver pin to that integrated head and reruns the existing producer-generated positive-control suite rather than inheriting compatibility from the older receiver receipt. No Interface runtime/schema/authority widening is implied by this receiver refresh.
+Regression-first head `ece729a7073b8bc19bbb7d4e01887cb2af1da336` intentionally kept the prior Assembly pin `9fe8b53daf3e572c596c142859cca2199a976553`. Actions run `35624414020` left unit and MorphTile integration green while the Assembly receiver lane failed exactly because the older receiver emitted `DEPENDENCY_CLOSURE`, `TILE`, `KIT_HASH`, and `KIT_IMPORT` PASS evidence but no `KIT_APPLY` evidence. The repair repins only to the exact integrated Assembly receiver that owns application closure and reruns the same producer specimen.
 
 ## Current substrate HOLD
 
@@ -35,7 +35,8 @@ Interface does not expose direct repeat-local value rendering until core genuine
 - Extend an existing bounded vocabulary before exposing a general expression language.
 - Expression-backed node labels and the action/control they decorate are separate concerns: fixing label scope must never widen signal or parameter authority.
 - Receiver pins are evidence identities; compatibility must be re-earned against exact tested receiver heads whenever receiver semantics advance.
-- When a receiver contract changes around representation states such as omission, `false`, zero, or compatibility-wrapper shape, preserve an exact producer-generated positive-control specimen and rerun it against the exact integrated receiver rather than relying on a pin alone.
+- When a receiver changes from planning proof to application proof, a producer compatibility suite should send at least one real producer-generated specimen through the complete receiver path rather than merely update a SHA or inspect folded structure.
+- Representation-sensitive values such as omission, `false`, and numeric zero must remain asserted on that specimen so stronger receiver proof does not erase source semantics.
 
 ## HELD / not claimed
 
