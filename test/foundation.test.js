@@ -199,3 +199,37 @@ test("binding declarations carry names only and fail closed on authority-shaped 
   assert.match(out.holds[0].detail, /state_values/);
   assert.equal(out.candidate, null);
 });
+
+test("authored binding declarations without interface consumers hold instead of disappearing", () => {
+  const out = run({
+    ...request,
+    request_id: "interface-unused-binding-held",
+    intent: {
+      tile_path: "mt_counter",
+      title: "Counter label only",
+      text: "No interactive binding is consumed",
+      bindings: { actions: ["increment"] }
+    }
+  });
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INVALID_INTERFACE_BINDING");
+  assert.match(out.holds[0].detail, /unused symbolic name/);
+  assert.match(out.holds[0].detail, /increment/);
+  assert.equal(out.candidate, null);
+});
+
+test("malformed authored bindings hold even when the interface consumes no binding", () => {
+  const out = run({
+    ...request,
+    request_id: "interface-unused-malformed-binding-held",
+    intent: {
+      tile_path: "mt_counter",
+      text: "Static",
+      bindings: { actions: "increment" }
+    }
+  });
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INVALID_INTERFACE_BINDING");
+  assert.match(out.holds[0].detail, /bindings\.actions/);
+  assert.equal(out.candidate, null);
+});
