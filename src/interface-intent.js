@@ -36,10 +36,12 @@ const ELEMENT_FIELDS = Object.freeze({
   tile: Object.freeze(["kind", "tile_id", "tile_path"]),
   row: Object.freeze(["kind", "children"]),
   group: Object.freeze(["kind", "children"]),
-  when: Object.freeze(["kind", "binding", "comparison", "threshold", "children"]),
+  when: Object.freeze(["kind", "binding", "comparison", "threshold", "expected", "children"]),
   repeat: Object.freeze(["kind", "binding", "step", "max", "children"])
 });
-const WHEN_COMPARISONS = Object.freeze(["above", "at_least", "below", "at_most"]);
+const WHEN_THRESHOLD_COMPARISONS = Object.freeze(["above", "at_least", "below", "at_most"]);
+const WHEN_EQUALITY_COMPARISONS = Object.freeze(["equals", "not_equals"]);
+const WHEN_COMPARISONS = Object.freeze([...WHEN_THRESHOLD_COMPARISONS, ...WHEN_EQUALITY_COMPARISONS]);
 const TILE_ID = /^[A-Za-z0-9_-]+$/;
 const TILE_PATH = /^[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/;
 const ARRAY_INDEX = /^(0|[1-9][0-9]*)$/;
@@ -232,15 +234,33 @@ function normalizeElements(value, depth, state, ownerRoot) {
       if (element.kind === "when") {
         const hasComparison = element.comparison !== undefined;
         const hasThreshold = element.threshold !== undefined;
-        if (hasComparison !== hasThreshold) {
-          throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".comparison and .threshold must be supplied together");
+        const hasExpected = element.expected !== undefined;
+        if (!hasComparison && (hasThreshold || hasExpected)) {
+          throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".threshold or .expected requires .comparison");
         }
         if (hasComparison) {
           if (!WHEN_COMPARISONS.includes(element.comparison)) {
-            throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".comparison must be above|at_least|below|at_most");
+            throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".comparison must be above|at_least|below|at_most|equals|not_equals");
           }
-          if (typeof element.threshold !== "number" || !Number.isFinite(element.threshold)) {
-            throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".threshold must be a finite number");
+          if (WHEN_THRESHOLD_COMPARISONS.includes(element.comparison)) {
+            if (!hasThreshold || hasExpected) {
+              throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".comparison " + element.comparison + " requires .threshold and forbids .expected");
+            }
+            if (typeof element.threshold !== "number" || !Number.isFinite(element.threshold)) {
+              throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".threshold must be a finite number");
+            }
+          } else {
+            if (!hasExpected || hasThreshold) {
+              throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".comparison " + element.comparison + " requires .expected and forbids .threshold");
+            }
+            const scalar = element.expected;
+            const scalarType = typeof scalar;
+            if (scalar !== null && scalarType !== "string" && scalarType !== "boolean" && scalarType !== "number") {
+              throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".expected must be a portable scalar string, boolean, finite number, or null");
+            }
+            if (scalarType === "number" && !Number.isFinite(scalar)) {
+              throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".expected numeric values must be finite");
+            }
           }
         }
       }
@@ -257,7 +277,8 @@ function normalizeElements(value, depth, state, ownerRoot) {
         normalized.binding = element.binding;
         if (element.comparison !== undefined) {
           normalized.comparison = element.comparison;
-          normalized.threshold = element.threshold;
+          if (WHEN_THRESHOLD_COMPARISONS.includes(element.comparison)) normalized.threshold = element.threshold;
+          else normalized.expected = element.expected;
         }
       }
       if (element.kind === "repeat") {
@@ -399,6 +420,8 @@ module.exports = {
   INTERFACE_INTENT_FIELDS,
   LEGACY_CONTENT_FIELDS,
   ELEMENT_FIELDS,
+  WHEN_THRESHOLD_COMPARISONS,
+  WHEN_EQUALITY_COMPARISONS,
   WHEN_COMPARISONS,
   TILE_ID,
   TILE_PATH,
