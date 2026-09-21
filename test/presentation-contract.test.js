@@ -31,6 +31,49 @@ test("holds an anchor outside tile mode instead of persisting an inert canonical
   assert.equal(out.candidate, null);
 });
 
+test("holds a dock outside docked mode instead of persisting mode-inert docking matter", () => {
+  const out = run(request("screen-dock-held", {
+    mode: "screen",
+    dock: "left",
+    user_adjustable: false
+  }));
+
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INVALID_PRESENTATION_PLACEMENT");
+  assert.match(out.holds[0].detail, /dock/);
+  assert.match(out.holds[0].detail, /docked/);
+  assert.equal(out.candidate, null);
+});
+
+test("docked mode preserves an explicit dock edge", () => {
+  const out = run(request("docked-explicit-edge", {
+    mode: "docked",
+    dock: "left",
+    user_adjustable: false
+  }));
+
+  assert.equal(out.status, "CANDIDATE");
+  assert.deepEqual(out.candidate.operations[1], {
+    op: "presentation.set",
+    id: "mt_tower",
+    presentation: { mode: "docked", dock: "left", user_adjustable: false }
+  });
+});
+
+test("docked mode may preserve MorphTile's native default edge by omitting dock", () => {
+  const out = run(request("docked-default-edge", {
+    mode: "docked",
+    user_adjustable: false
+  }));
+
+  assert.equal(out.status, "CANDIDATE");
+  assert.deepEqual(out.candidate.operations[1], {
+    op: "presentation.set",
+    id: "mt_tower",
+    presentation: { mode: "docked", user_adjustable: false }
+  });
+});
+
 test("tile mode preserves an explicit anchor and emits the matching proof dependency", () => {
   const out = run(request("tile-anchor-explicit", {
     mode: "tile",
