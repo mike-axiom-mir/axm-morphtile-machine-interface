@@ -19,6 +19,7 @@ test("receiver evidence truth surfaces match the executable Assembly fixture ide
 
   const status = read("STATUS.md");
   const readme = read("README.md");
+  const roadmap = read("ROADMAP.md");
   const workflow = read(".github/workflows/test.yml");
 
   assert.ok(
@@ -28,6 +29,16 @@ test("receiver evidence truth surfaces match the executable Assembly fixture ide
   assert.ok(
     lines(readme).some((line) => line.startsWith(`- ASSEMBLY RECEIVER TARGET: exact integrated Assembly \`${commit}\`;`)),
     "README.md must name the same exact Assembly evidence commit that CI checks out"
+  );
+  const currentRoadmapLines = lines(roadmap).filter((line) => line.includes(commit));
+  assert.ok(
+    currentRoadmapLines.some((line) => line.startsWith("- [x] ")),
+    "ROADMAP.md must mark the current exact Assembly receiver evidence target as completed"
+  );
+  assert.equal(
+    currentRoadmapLines.filter((line) => line.startsWith("- [ ] ")).length,
+    0,
+    "ROADMAP.md must not leave the current exact Assembly receiver evidence target as an unresolved TODO"
   );
   assert.ok(
     lines(workflow).some((line) => line.trim() === `repository: ${repository}`),
