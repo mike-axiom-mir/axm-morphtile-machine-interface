@@ -72,6 +72,23 @@ function placedInterfaceCandidate() {
   ));
 }
 
+function portablePlacedInterfaceCandidate() {
+  return authorInterface(request(
+    "interface-portable-presentation-proof-source",
+    "Author a root-local Interface specimen that must survive receiver application",
+    {
+      tile_path: "mt_receiver_panel",
+      title: "Portable receiver proof",
+      elements: [{ kind: "text", text: "Receiver application proof" }],
+      placement: {
+        mode: "docked",
+        preferred_position: [0, 0],
+        user_adjustable: false
+      }
+    }
+  ));
+}
+
 function towerInterface(action) {
   return authorInterface(request(
     "interface-proof-tower-" + action,
@@ -96,6 +113,17 @@ function assembleWith(assemble, inputs, id) {
     intent: { id: "mt_inner", tile_path: "mt_shell/mt_inner", name: "Nested receiver proof" },
     inputs: [uiEligibility(), ...inputs],
     provenance: { caller: "interface-assembly-dependency-integration" }
+  });
+}
+
+function assemblePortableWith(assemble, inputs, id) {
+  return assemble({
+    envelope_version: "0.1",
+    request_id: id,
+    goal: "Fold portable root-local Interface matter and prove receiver application",
+    intent: { id: "mt_receiver_panel", tile_path: "mt_receiver_panel", name: "Portable receiver proof" },
+    inputs: [uiEligibility(), ...inputs],
+    provenance: { caller: "interface-assembly-receiver-application-integration" }
   });
 }
 
@@ -135,6 +163,40 @@ test("current Assembly receiver folds exact Interface v0.5 presentation omission
   assert.equal(combined.status, "CANDIDATE", JSON.stringify(combined.holds));
   assert.deepEqual(combined.candidate.presentation, presentation);
   assert.deepEqual(combined.dependencies, interfaceOut.dependencies);
+});
+
+test("exact Assembly receiver applies a real Interface kit through the pinned MorphTile runtime", { skip: !assemblyPath || !corePath }, () => {
+  assert.equal(assemblyCommit, EXPECTED_ASSEMBLY_COMMIT, "CI Assembly checkout must match fixtures/integration-sources.json");
+  assert.equal(coreCommit, EXPECTED_MORPHTILE_COMMIT, "CI MorphTile checkout must match machine.json tested_against.commit");
+
+  const MT = require(path.resolve(corePath));
+  const { run: assemble } = require(path.resolve(assemblyPath));
+  const { materializeKit } = require(path.resolve(assemblyPath, "kit"));
+  const interfaceOut = portablePlacedInterfaceCandidate();
+
+  assert.equal(interfaceOut.status, "CANDIDATE", JSON.stringify(interfaceOut.holds));
+  const expectedPresentation = interfaceOut.candidate.operations[1].presentation;
+  assert.deepEqual(expectedPresentation, {
+    mode: "docked",
+    preferred_position: [0, 0],
+    user_adjustable: false
+  });
+  assert.equal(Object.prototype.hasOwnProperty.call(expectedPresentation, "dock"), false);
+
+  const combined = assemblePortableWith(assemble, [interfaceOut], "assembly-interface-kit-application");
+  assert.equal(combined.status, "CANDIDATE", JSON.stringify(combined.holds));
+  assert.deepEqual(combined.candidate.presentation, expectedPresentation);
+
+  const materialized = materializeKit(combined, MT, { name: "Interface receiver application proof" });
+  assert.equal(materialized.status, "CANDIDATE", JSON.stringify(materialized.holds));
+  assert.deepEqual(materialized.kit.tile.presentation, expectedPresentation);
+  assert.deepEqual(materialized.kit.tile.view, combined.candidate.view);
+  assert.deepEqual(materialized.dependency_resolution.map((receipt) => receipt.status), ["SATISFIED"]);
+  const applyEvidence = materialized.evidence.find((item) => item.kind === "KIT_APPLY");
+  assert.ok(applyEvidence, JSON.stringify(materialized.evidence));
+  assert.equal(applyEvidence.status, "PASS");
+  assert.match(applyEvidence.check, /^all \d+ READY import operations executed in order against the isolated fresh receiver$/);
+  assert.deepEqual(materialized.holds, []);
 });
 
 test("stable proof identity makes contradictory requirements HOLD instead of coexisting opaquely", { skip: !assemblyPath }, () => {
