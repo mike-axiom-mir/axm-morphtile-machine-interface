@@ -2,7 +2,7 @@
 
 const { assertRequest, result } = require("./envelope");
 const { InterfaceIntentError, TILE_PATH, normalizeInterfaceIntent } = require("./interface-intent");
-const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.8" };
+const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.9" };
 const PRESENTATION_MODES = new Set(["screen", "docked", "floating", "fullscreen", "embedded", "world", "tile"]);
 const DOCKS = new Set(["left", "right", "top", "bottom"]);
 const PRESENTATION_KEYS = new Set(["mode", "dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]);
@@ -19,6 +19,7 @@ function normalizePlacement(value) {
   if (unknownKeys.length) return { ok: false, error: `placement contains unsupported field(s): ${unknownKeys.join(", ")}` };
   if (!PRESENTATION_MODES.has(value.mode)) return { ok: false, error: "placement.mode must be screen|docked|floating|fullscreen|embedded|world|tile" };
   if (value.dock != null && !DOCKS.has(value.dock)) return { ok: false, error: "placement.dock must be left|right|top|bottom" };
+  if (value.dock != null && value.mode !== "docked") return { ok: false, error: "placement.dock is consumed only by docked presentation mode" };
   if (value.preferred_size != null && (!finiteVector(value.preferred_size, 2) || value.preferred_size.some((n) => n <= 0))) return { ok: false, error: "placement.preferred_size must be two positive numbers" };
   if (value.preferred_position != null && !(finiteVector(value.preferred_position, 2) || finiteVector(value.preferred_position, 3))) return { ok: false, error: "placement.preferred_position must be two or three numbers" };
   if (value.user_adjustable != null && typeof value.user_adjustable !== "boolean") return { ok: false, error: "placement.user_adjustable must be boolean" };
@@ -226,7 +227,7 @@ function run(request) {
       evidence: [{
         kind: "AUTHORITY",
         status: "PASS",
-        check: "candidate carries only validated authored interface text, bounded native view styling, bounded native local/same-root tile composition, nested relative/conditional/repeated layout, declared symbolic bindings and presentation descriptors; no copied canonical or session state; target-local and runtime-relevant anchor proof remain explicit dependencies"
+        check: "candidate carries only validated authored interface text, bounded native view styling, bounded native local/same-root tile composition, nested relative/conditional/repeated layout, declared symbolic bindings and mode-owned presentation descriptors; no copied canonical or session state; target-local and runtime-relevant anchor proof remain explicit dependencies"
       }],
       warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
     });
