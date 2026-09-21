@@ -11,7 +11,8 @@
 - [x] Add bounded nearest-repeat lexical relational selectors over native `i` / `i_of`; independently verify and integrate Interface 0.5.13.
 - [x] Re-pin the Interface receiver harness to integrated Assembly `92f97d4d9b002c76d37a14910e05e65a60f78de8` and require fresh CI before claiming compatibility.
 - [x] Re-earn receiver compatibility against integrated Assembly `3a4af4417de21fff862bf309e3576c362bcac7f5`, whose semantic-container checks advanced after the previous receiver receipt.
-- [x] Re-prove the repaired Interface-v0.5 presentation receiver against current integrated Assembly `4b7f89f83dff90d07ab6e70b7b40e8623579bbf1` using a real Interface-generated positive-control candidate that distinguishes omission, authored `false`, and numeric zero.
+- [x] Re-prove the repaired Interface-v0.5 presentation receiver against integrated Assembly `4b7f89f83dff90d07ab6e70b7b40e8623579bbf1` using a real Interface-generated positive-control candidate that distinguishes omission, authored `false`, and numeric zero.
+- [ ] Re-earn exact receiver compatibility against integrated Assembly `9fe8b53daf3e572c596c142859cca2199a976553`, whose compatibility grammar now fails closed on malformed status-less candidate wrappers while preserving valid plain-map wrappers and upstream HOLD authority; rerun the existing producer-generated positive-control suite before claiming compatibility.
 - [ ] Expose direct repeat-local value rendering only after MorphTile core truthfully propagates lexical repeat scope into expression-backed view text; core PR #17 is the current HOLD lane.
 - [ ] Keep expression-backed meter/button/control labels under the same core lexical-scope rule when nested in repeats; do not work around the core by copying repeat locals or action/control authority into Interface matter.
 - [ ] Define a separate proof/authority contract before any cross-root tile composition is exposed; do not infer cross-root authority from same-root paths.
