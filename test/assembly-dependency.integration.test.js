@@ -196,6 +196,10 @@ test("exact Assembly receiver applies a real Interface kit through the pinned Mo
   assert.ok(applyEvidence, JSON.stringify(materialized.evidence));
   assert.equal(applyEvidence.status, "PASS");
   assert.match(applyEvidence.check, /^all \d+ READY import operations executed in order against the isolated fresh receiver$/);
+  const closureEvidence = materialized.evidence.find((item) => item.kind === "KIT_RECEIVER_CLOSURE");
+  assert.ok(closureEvidence, JSON.stringify(materialized.evidence));
+  assert.equal(closureEvidence.status, "PASS");
+  assert.match(closureEvidence.check, /^all \d+ READY operation postconditions are present exactly in the isolated fresh receiver; plan [0-9a-f]{64}$/);
   assert.deepEqual(materialized.holds, []);
 });
 
