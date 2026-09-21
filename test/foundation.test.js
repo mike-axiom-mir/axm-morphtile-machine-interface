@@ -80,6 +80,28 @@ test("holds authority snapshots nested inside placement instead of silently drop
   assert.equal(out.candidate, null);
 });
 
+test("authored null presentation fields hold instead of becoming canonical no-op values", () => {
+  const cases = [
+    ["dock", { mode: "docked", dock: null }],
+    ["preferred_size", { mode: "screen", preferred_size: null }],
+    ["preferred_position", { mode: "screen", preferred_position: null }],
+    ["user_adjustable", { mode: "screen", user_adjustable: null }],
+    ["anchor", { mode: "tile", anchor: null }]
+  ];
+
+  for (const [field, placement] of cases) {
+    const out = run({
+      ...request,
+      request_id: `interface-placement-null-${field}`,
+      intent: { ...request.intent, placement }
+    });
+    assert.equal(out.status, "HOLD", `${field} should reject authored null`);
+    assert.equal(out.holds[0].code, "HOLD_INVALID_PRESENTATION_PLACEMENT");
+    assert.match(out.holds[0].detail, new RegExp(`placement\\.${field}`));
+    assert.equal(out.candidate, null);
+  }
+});
+
 test("interactive controls require an explicit symbolic binding declaration", () => {
   const out = run({
     ...request,
