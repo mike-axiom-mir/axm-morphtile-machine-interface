@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.11 — 2026-09-21
+
+- Extended the existing canonical-state `when` element with bounded strict equality predicates: `equals` and `not_equals` plus an authored scalar `expected` value.
+- Limited equality operands to portable string, boolean, finite number or `null` values and rejected object/array predicates, mixed threshold/equality operand forms, and authority-shaped extras.
+- Compiled equality directly to MorphTile's existing native `==` / `!=` operators while keeping the live value on the existing symbolic readout/target-proof lane; no copied state or private evaluator was added.
+- Preserved the original truthy and numeric-threshold `when` forms unchanged.
+- Added regression-first unit/runtime evidence and a pinned runtime proof that equality visibility follows real canonical `mt_tower.beacon` state, preserves nested input-action authority, remains render-read-only, and rolls back exactly.
+- Refreshed Assembly receiver evidence to current integrated Assembly `9bb340ca0b7e9e7c456fb4ef2931171d11bbab00`.
+- Kept MorphTile core unchanged because strict equality evaluation is already a universal runtime primitive; the gap was bounded Interface producer vocabulary.
+
 ## 0.5.10 — 2026-09-21
 
 - Extended the existing canonical-state `when` element with an optional bounded numeric threshold contract: `comparison` plus finite numeric `threshold`.
