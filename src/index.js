@@ -2,7 +2,7 @@
 
 const { assertRequest, result } = require("./envelope");
 const { InterfaceIntentError, TILE_PATH, normalizeInterfaceIntent } = require("./interface-intent");
-const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.11" };
+const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.12" };
 const PRESENTATION_MODES = new Set(["screen", "docked", "floating", "fullscreen", "embedded", "world", "tile"]);
 const DOCKS = new Set(["left", "right", "top", "bottom"]);
 const PRESENTATION_KEYS = new Set(["mode", "dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]);
@@ -58,6 +58,8 @@ function requestedBindings(intent) {
     else if (element.kind === "when" || element.kind === "repeat") {
       requested.readouts.push(element.binding);
       for (const child of element.children) collect(child);
+    } else if (element.kind === "repeat_when") {
+      for (const child of element.children) collect(child);
     } else if (element.kind === "action") requested.actions.push(element.binding);
     else if (element.kind === "control") requested.controls.push(element.binding);
     else if (element.kind === "row" || element.kind === "group") for (const child of element.children) collect(child);
@@ -99,9 +101,6 @@ function validateBindings(intent) {
   const bindings = normalizeBindings(intent.bindings);
   if (!bindings.ok) return bindings;
 
-  // First prove every authored interactive target is declared. Only after the
-  // requested contract is complete do we report declarations that have no use.
-  // This keeps the most direct caller error stable when both defects exist.
   for (const key of ["readouts", "actions", "controls"]) {
     const singular = key === "readouts" ? "readout" : key === "actions" ? "action" : "control";
     for (const name of requested[key]) {
@@ -131,6 +130,12 @@ function nodeForElement(element) {
     const node = { text: element.text };
     if (element.strong !== undefined) node.strong = element.strong;
     return node;
+  }
+  if (element.kind === "repeat_when") {
+    return {
+      group: element.children.map(nodeForElement),
+      when: ["==", ["var", element.source === "index" ? "i" : "i_of"], element.equals]
+    };
   }
   if (element.kind === "tile") return { tile: element.tile_path !== undefined ? "/" + element.tile_path : element.tile_id };
   if (element.kind === "row") return { row: element.children.map(nodeForElement) };
@@ -235,7 +240,7 @@ function run(request) {
       evidence: [{
         kind: "AUTHORITY",
         status: "PASS",
-        check: "candidate carries only validated authored interface text, bounded native view styling, bounded native local/same-root tile composition, nested relative/conditional/threshold/equality/repeated layout, declared symbolic bindings and mode-owned presentation descriptors; no copied canonical or session state; target-local and runtime-relevant anchor proof remain explicit dependencies"
+        check: "candidate carries only validated authored interface text, bounded native view styling, bounded native local/same-root tile composition, nested canonical-state conditions/repeats, bounded nearest-repeat lexical selectors, declared symbolic bindings and mode-owned presentation descriptors; no copied canonical or session state; target-local and runtime-relevant anchor proof remain explicit dependencies"
       }],
       warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
     });
@@ -245,7 +250,7 @@ function run(request) {
   return result(request, MACHINE, "CANDIDATE", {
     candidate: { schema: "morphtile.view-operation/v0.5", operation: viewOperation },
     dependencies,
-    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains validated authored interface text plus bounded native view styling, bounded native local/same-root tile composition, nested relative/conditional/threshold/equality/repeated layout and declared symbolic bindings with no copied state values; target-local proof remains an explicit dependency" }],
+    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains validated authored interface text plus bounded native view styling, bounded native local/same-root tile composition, nested canonical-state conditions/repeats, bounded nearest-repeat lexical selectors and declared symbolic bindings with no copied state values; target-local proof remains an explicit dependency" }],
     warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
   });
 }
