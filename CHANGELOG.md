@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.8 — 2026-09-21
+
+- Added bounded MorphTile-native view styling: normalized RGB `intent.accent`, finite `intent.width >= 1`, and optional boolean `strong` on ordered text elements.
+- Rejected raw color strings, malformed/out-of-range accent triples, widths MorphTile would silently clamp, and non-boolean `strong` values rather than widening into arbitrary CSS or coercion.
+- Added a pinned runtime proof that generated style matter commits through MorphTile, renders the native accent/width/strong behavior without mutating canonical matter, and rolls back exactly.
+- Re-pinned Assembly receiver evidence to current integrated Assembly main `675ec2498ff94969ad198843ba65aa145134da6c`.
+- Refreshed stale `STATUS.md` and roadmap truth after the already-integrated 0.5.6/0.5.7 lanes.
+- Kept MorphTile core unchanged because `view.accent`, `view.width`, and text `strong` are already universal core view primitives; the gap was bounded producer vocabulary.
+
 ## 0.5.7 — 2026-09-21
 
 - Tightened presentation authoring so `placement.anchor` is accepted only when `placement.mode` is `tile`, matching the only MorphTile runtime branch that resolves an anchor.
