@@ -23,6 +23,7 @@ function normalizePlacement(value) {
   if (value.preferred_position != null && !(finiteVector(value.preferred_position, 2) || finiteVector(value.preferred_position, 3))) return { ok: false, error: "placement.preferred_position must be two or three numbers" };
   if (value.user_adjustable != null && typeof value.user_adjustable !== "boolean") return { ok: false, error: "placement.user_adjustable must be boolean" };
   if (value.anchor != null && (typeof value.anchor !== "string" || !TILE_PATH.test(value.anchor))) return { ok: false, error: "placement.anchor must be a MorphTile path of [A-Za-z0-9_-]+ segments separated by /" };
+  if (value.anchor != null && value.mode !== "tile") return { ok: false, error: "placement.anchor is consumed only by tile presentation mode" };
 
   const placement = { mode: value.mode };
   for (const key of ["dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]) {
