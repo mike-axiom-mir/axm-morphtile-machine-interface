@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.5.13 — 2026-09-21
+
+- Extended bounded nearest-repeat `repeat_when` selectors beyond equality shorthand with six named comparisons: `above`, `at_least`, `below`, `at_most`, `equals`, and `not_equals` plus one integer `value`.
+- Compiled those selectors directly to MorphTile's existing scoped comparison evaluator over lexical `i` / `i_of`; repeat locals remain runtime scope and create no canonical-state proof obligation.
+- Kept index operands bounded to `0..nearest-repeat max-1` and count operands to `1..nearest-repeat max`; rejected fractional/out-of-range values, half-specified forms, unsupported comparisons and mixing `.equals` with `.comparison/.value`.
+- Preserved ordinary child binding proofs and did not expose arbitrary expressions, repeat-local arithmetic, copied state or bridge authority.
+- Final exact candidate head `dd93d83f1fc93536851a9cb0025255241172104f`, Actions `35568902190`, passed unit, pinned MorphTile integration and Assembly receiver integration, including explicit proof for every allowed comparison plus lexical `i_of`.
+- Independent Verification replayed the exact candidate and the Creation Director integrated PR #25 as Interface main `d1c2ee9d25d9f8db1dbb1c907e9d022928467f70`.
+
+## 0.5.12 — 2026-09-21
+
+- Added bounded nearest-repeat lexical selectors with `{ kind: "repeat_when", source: "index"|"count", equals: N, children }`.
+- Compiled `index` / `count` directly to MorphTile's existing lexical repeat variables `i` / `i_of` through native scoped `when` evaluation; lexical locals were not promoted to canonical target state.
+- Bounded selector operands against the nearest repeat's authored `max`, preserved nested nearest-scope behavior, and kept nested actions/readouts/controls on their ordinary proof lanes.
+- Closed the attempted direct repeat-value producer rather than pretending expression-backed text could consume lexical repeat scope when core did not yet do so.
+- Created MorphTile core PR #17 as an explicit regression/HOLD lane for that universal runtime gap instead of adding an Interface-private evaluator.
+- Independent Verification replayed the 0.5.12 candidate and the Creation Director integrated it before the 0.5.13 lane.
+
 ## 0.5.11 — 2026-09-21
 
 - Extended the existing canonical-state `when` element with bounded strict equality predicates: `equals` and `not_equals` plus an authored scalar `expected` value.
