@@ -1,1 +1,1 @@
-{"name":"@axm/morphtile-machine-interface","version":"0.5.10","private":false,"type":"commonjs","scripts":{"test":"node --test","test:integration":"node --test test/*.integration.test.js"},"engines":{"node":">=18"},"license":"LicenseRef-PolyForm-Noncommercial-1.0.0"}
+{"name":"@axm/morphtile-machine-interface","version":"0.5.11","private":false,"type":"commonjs","scripts":{"test":"node --test","test:integration":"node --test test/*.integration.test.js"},"engines":{"node":">=18"},"license":"LicenseRef-PolyForm-Noncommercial-1.0.0"}
