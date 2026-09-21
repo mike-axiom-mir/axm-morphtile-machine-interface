@@ -4,11 +4,14 @@
 - [x] Independently verify Interface 0.5.5 local-tile composition and integrate it through the Creation Director.
 - [x] Add explicit same-root full-path tile composition that compiles to an unambiguous absolute native tile reference while keeping cross-root composition held.
 - [x] Independently verify Interface 0.5.6 exact-head same-root path composition and integrate it through the Creation Director.
-- [x] Reject presentation fields such as `anchor` when the selected runtime mode does not consume them; preserve meaningful substrate defaults.
+- [x] Reject presentation `anchor` when the selected runtime mode does not consume it; preserve MorphTile's tile self-anchor default when omitted.
 - [x] Expose a bounded static subset of MorphTile-native view styling: normalized RGB `accent`, finite `width >= 1`, and boolean text `strong`, without adding CSS or host authority.
-- [ ] Independently verify Interface 0.5.8 exact-head bounded view styling before Director integration.
+- [x] Independently verify Interface 0.5.8 exact-head bounded view styling and integrate it through the Creation Director.
+- [x] Reject `dock` outside `mode: "docked"` while preserving MorphTile's native docked-edge default when `dock` is omitted.
+- [ ] Independently verify Interface 0.5.9 exact-head mode-owned docking semantics before Director integration.
 - [ ] Define a separate proof/authority contract before any cross-root tile composition is exposed; do not infer cross-root authority from same-root paths.
 - [ ] Add host-side visual evidence for the supported presentation modes without turning host/session state into canonical matter.
+- [ ] Add presentation z-order authoring only after a canonical MorphTile substrate primitive/schema is evidenced; do not invent a private Interface-only ordering contract.
 - [x] Add negative integration fixtures for missing anchors and unsupported host-mode HOLD outcomes.
 - [x] Deepen safe action-binding fixtures across real input, internal rule, attach socket, output signal and missing socket names while keeping state references symbolic rather than copied.
 - [ ] Re-test and re-pin before widening MorphTile compatibility beyond the exact verified core revision.

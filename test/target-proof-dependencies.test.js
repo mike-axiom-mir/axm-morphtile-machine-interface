@@ -45,7 +45,13 @@ test("tile presentation anchors become an explicit existence proof dependency", 
     request_id: "target-proof-anchor",
     intent: {
       ...placementRequest.intent,
-      placement: { ...placementRequest.intent.placement, mode: "tile", anchor: "mt_shell/mt_mount" }
+      placement: {
+        mode: "tile",
+        preferred_size: placementRequest.intent.placement.preferred_size,
+        preferred_position: placementRequest.intent.placement.preferred_position,
+        user_adjustable: placementRequest.intent.placement.user_adjustable,
+        anchor: "mt_shell/mt_mount"
+      }
     }
   });
   assert.equal(out.status, "CANDIDATE");

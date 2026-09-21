@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.9 — 2026-09-21
+
+- Tightened presentation authoring so `placement.dock` is accepted only when `placement.mode` is `docked`, matching the presentation mode that owns docking semantics.
+- Preserved MorphTile's native docked-edge default by allowing `mode: "docked"` to omit `dock`; Interface does not invent an edge when the substrate already has a meaningful default.
+- Added regression-first evidence that previous Interface behavior accepted a `screen` presentation with mode-inert canonical docking matter, then made that request fail closed with `HOLD_INVALID_PRESENTATION_PLACEMENT`.
+- Repaired the tile-anchor proof fixture so switching presentation modes does not accidentally retain a dock field owned by the old mode.
+- Kept MorphTile core unchanged because the universal docked presentation runtime and default already exist; the gap was producer-side semantic ownership.
+- Refreshed status/roadmap truth to record that Interface 0.5.8 was independently verified and integrated before this candidate.
+
 ## 0.5.8 — 2026-09-21
 
 - Added bounded MorphTile-native view styling: normalized RGB `intent.accent`, finite `intent.width >= 1`, and optional boolean `strong` on ordered text elements.
@@ -8,6 +17,7 @@
 - Re-pinned Assembly receiver evidence to current integrated Assembly main `675ec2498ff94969ad198843ba65aa145134da6c`.
 - Refreshed stale `STATUS.md` and roadmap truth after the already-integrated 0.5.6/0.5.7 lanes.
 - Kept MorphTile core unchanged because `view.accent`, `view.width`, and text `strong` are already universal core view primitives; the gap was bounded producer vocabulary.
+- Independent Verification replayed exact 0.5.8 head `e28c9a380d6425cb6611d7a74903bf8e89dd0c62`; the Creation Director subsequently integrated PR #19 as Interface main `ca377c7d8033acbfb1f4dc7a5172027a7a194b3f`.
 
 ## 0.5.7 — 2026-09-21
 
