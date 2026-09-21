@@ -36,9 +36,10 @@ const ELEMENT_FIELDS = Object.freeze({
   tile: Object.freeze(["kind", "tile_id", "tile_path"]),
   row: Object.freeze(["kind", "children"]),
   group: Object.freeze(["kind", "children"]),
-  when: Object.freeze(["kind", "binding", "children"]),
+  when: Object.freeze(["kind", "binding", "comparison", "threshold", "children"]),
   repeat: Object.freeze(["kind", "binding", "step", "max", "children"])
 });
+const WHEN_COMPARISONS = Object.freeze(["above", "at_least", "below", "at_most"]);
 const TILE_ID = /^[A-Za-z0-9_-]+$/;
 const TILE_PATH = /^[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/;
 const ARRAY_INDEX = /^(0|[1-9][0-9]*)$/;
@@ -228,6 +229,21 @@ function normalizeElements(value, depth, state, ownerRoot) {
       if ((element.kind === "when" || element.kind === "repeat") && typeof element.binding !== "string") {
         throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".binding must be a string");
       }
+      if (element.kind === "when") {
+        const hasComparison = element.comparison !== undefined;
+        const hasThreshold = element.threshold !== undefined;
+        if (hasComparison !== hasThreshold) {
+          throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".comparison and .threshold must be supplied together");
+        }
+        if (hasComparison) {
+          if (!WHEN_COMPARISONS.includes(element.comparison)) {
+            throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".comparison must be above|at_least|below|at_most");
+          }
+          if (typeof element.threshold !== "number" || !Number.isFinite(element.threshold)) {
+            throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".threshold must be a finite number");
+          }
+        }
+      }
       if (element.kind === "repeat") {
         if (typeof element.step !== "number" || !Number.isFinite(element.step) || element.step <= 0) {
           throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".step must be a positive finite number");
@@ -237,7 +253,13 @@ function normalizeElements(value, depth, state, ownerRoot) {
         }
       }
       const normalized = { kind: element.kind, children: normalizeElements(element.children, atDepth + 1, budget, ownerRoot) };
-      if (element.kind === "when") normalized.binding = element.binding;
+      if (element.kind === "when") {
+        normalized.binding = element.binding;
+        if (element.comparison !== undefined) {
+          normalized.comparison = element.comparison;
+          normalized.threshold = element.threshold;
+        }
+      }
       if (element.kind === "repeat") {
         normalized.binding = element.binding;
         normalized.step = element.step;
@@ -377,6 +399,7 @@ module.exports = {
   INTERFACE_INTENT_FIELDS,
   LEGACY_CONTENT_FIELDS,
   ELEMENT_FIELDS,
+  WHEN_COMPARISONS,
   TILE_ID,
   TILE_PATH,
   MAX_LAYOUT_NODES,
