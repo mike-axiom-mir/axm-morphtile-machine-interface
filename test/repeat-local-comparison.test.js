@@ -23,21 +23,50 @@ function intent(children, max = 4) {
   };
 }
 
-test("repeat-local relational comparisons compile to native scoped predicates without canonical-state proof", () => {
+test("every bounded repeat-local comparison compiles to the matching native scoped predicate without canonical-state proof", () => {
+  const specs = [
+    ["above", ">", 1],
+    ["at_least", ">=", 1],
+    ["below", "<", 2],
+    ["at_most", "<=", 2],
+    ["equals", "==", 1],
+    ["not_equals", "!=", 1]
+  ];
   const out = run({
     ...base,
-    intent: intent([
-      { kind: "repeat_when", source: "index", comparison: "at_least", value: 1, children: [{ kind: "text", text: "after first" }] },
-      { kind: "repeat_when", source: "count", comparison: "at_least", value: 3, children: [{ kind: "text", text: "crowded" }] }
-    ])
+    intent: intent(specs.map(([comparison, , value]) => ({
+      kind: "repeat_when",
+      source: "index",
+      comparison,
+      value,
+      children: [{ kind: "text", text: comparison }]
+    })))
   });
 
   assert.equal(out.status, "CANDIDATE");
-  assert.deepEqual(out.candidate.operation.view.body[0].body, [
-    { group: [{ text: "after first" }], when: [">=", ["var", "i"], 1] },
-    { group: [{ text: "crowded" }], when: [">=", ["var", "i_of"], 3] }
-  ]);
+  assert.deepEqual(
+    out.candidate.operation.view.body[0].body,
+    specs.map(([comparison, op, value]) => ({
+      group: [{ text: comparison }],
+      when: [op, ["var", "i"], value]
+    }))
+  );
   assert.deepEqual(out.dependencies[0].requires.readout_logic_vars, ["beacon"], "lexical comparison operands must not become canonical target-proof obligations");
+});
+
+test("repeat-local count comparison uses lexical i_of rather than canonical state", () => {
+  const out = run({
+    ...base,
+    request_id: "repeat-local-count-comparison",
+    intent: intent([{ kind: "repeat_when", source: "count", comparison: "at_least", value: 3, children: [{ kind: "text", text: "crowded" }] }])
+  });
+
+  assert.equal(out.status, "CANDIDATE");
+  assert.deepEqual(out.candidate.operation.view.body[0].body[0], {
+    group: [{ text: "crowded" }],
+    when: [">=", ["var", "i_of"], 3]
+  });
+  assert.deepEqual(out.dependencies[0].requires.readout_logic_vars, ["beacon"]);
 });
 
 test("repeat-local equality shorthand stays backward compatible", () => {
