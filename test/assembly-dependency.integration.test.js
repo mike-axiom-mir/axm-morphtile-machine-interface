@@ -55,6 +55,23 @@ function interfaceCandidate() {
   ));
 }
 
+function placedInterfaceCandidate() {
+  return authorInterface(request(
+    "interface-presentation-proof-source",
+    "Author exact current presentation matter while preserving receiver-owned defaults",
+    {
+      tile_path: "mt_shell/mt_inner",
+      title: "Receiver presentation proof",
+      elements: [{ kind: "text", text: "Placement proof" }],
+      placement: {
+        mode: "docked",
+        preferred_position: [0, 0],
+        user_adjustable: false
+      }
+    }
+  ));
+}
+
 function towerInterface(action) {
   return authorInterface(request(
     "interface-proof-tower-" + action,
@@ -97,6 +114,27 @@ test("exact Assembly receiver preserves Interface target proofs and binds them i
   assert.deepEqual(combined.target_binding, { id: "mt_inner", path: "mt_shell/mt_inner" });
   assert.deepEqual(combined.dependencies, interfaceOut.dependencies);
   assert.equal(combined.closure_hash.scope, "candidate+dependencies+world_requirements");
+});
+
+test("current Assembly receiver folds exact Interface v0.5 presentation omission plus false and zero values", { skip: !assemblyPath }, () => {
+  assert.equal(assemblyCommit, EXPECTED_ASSEMBLY_COMMIT, "CI Assembly checkout must match fixtures/integration-sources.json");
+  const { run: assemble } = require(path.resolve(assemblyPath));
+  const interfaceOut = placedInterfaceCandidate();
+
+  assert.equal(interfaceOut.status, "CANDIDATE", JSON.stringify(interfaceOut.holds));
+  assert.equal(interfaceOut.candidate.schema, "morphtile.interface-operations/v0.5");
+  const presentation = interfaceOut.candidate.operations[1].presentation;
+  assert.deepEqual(presentation, {
+    mode: "docked",
+    preferred_position: [0, 0],
+    user_adjustable: false
+  });
+  assert.equal(Object.prototype.hasOwnProperty.call(presentation, "dock"), false, "omitted dock must remain receiver-owned omission");
+
+  const combined = assembleWith(assemble, [interfaceOut], "assembly-presentation-contract");
+  assert.equal(combined.status, "CANDIDATE", JSON.stringify(combined.holds));
+  assert.deepEqual(combined.candidate.presentation, presentation);
+  assert.deepEqual(combined.dependencies, interfaceOut.dependencies);
 });
 
 test("stable proof identity makes contradictory requirements HOLD instead of coexisting opaquely", { skip: !assemblyPath }, () => {
