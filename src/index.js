@@ -2,7 +2,7 @@
 
 const { assertRequest, result } = require("./envelope");
 const { InterfaceIntentError, TILE_PATH, normalizeInterfaceIntent } = require("./interface-intent");
-const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.12" };
+const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.13" };
 const PRESENTATION_MODES = new Set(["screen", "docked", "floating", "fullscreen", "embedded", "world", "tile"]);
 const DOCKS = new Set(["left", "right", "top", "bottom"]);
 const PRESENTATION_KEYS = new Set(["mode", "dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]);
@@ -132,9 +132,11 @@ function nodeForElement(element) {
     return node;
   }
   if (element.kind === "repeat_when") {
+    const comparison = element.comparison !== undefined ? element.comparison : "equals";
+    const operand = element.value !== undefined ? element.value : element.equals;
     return {
       group: element.children.map(nodeForElement),
-      when: ["==", ["var", element.source === "index" ? "i" : "i_of"], element.equals]
+      when: [WHEN_COMPARISON_OPS[comparison], ["var", element.source === "index" ? "i" : "i_of"], operand]
     };
   }
   if (element.kind === "tile") return { tile: element.tile_path !== undefined ? "/" + element.tile_path : element.tile_id };

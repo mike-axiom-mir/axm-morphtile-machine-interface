@@ -38,7 +38,7 @@ const ELEMENT_FIELDS = Object.freeze({
   group: Object.freeze(["kind", "children"]),
   when: Object.freeze(["kind", "binding", "comparison", "threshold", "expected", "children"]),
   repeat: Object.freeze(["kind", "binding", "step", "max", "children"]),
-  repeat_when: Object.freeze(["kind", "source", "equals", "children"])
+  repeat_when: Object.freeze(["kind", "source", "equals", "comparison", "value", "children"])
 });
 const WHEN_THRESHOLD_COMPARISONS = Object.freeze(["above", "at_least", "below", "at_most"]);
 const WHEN_EQUALITY_COMPARISONS = Object.freeze(["equals", "not_equals"]);
@@ -210,30 +210,49 @@ function normalizeElements(value, depth, state, ownerRoot, repeatMax) {
       if (!REPEAT_LOCAL_SOURCES.includes(element.source)) {
         throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".source must be index|count");
       }
-      if (!Number.isInteger(element.equals)) {
-        throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".equals must be an integer");
+      const hasEquals = element.equals !== undefined;
+      const hasComparison = element.comparison !== undefined;
+      const hasValue = element.value !== undefined;
+      if (hasEquals && (hasComparison || hasValue)) {
+        throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".equals shorthand cannot be mixed with .comparison/.value");
       }
-      if (element.source === "index" && (element.equals < 0 || element.equals >= nearestRepeatMax)) {
+      if (!hasEquals && (!hasComparison || !hasValue)) {
+        throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + " requires .equals or the pair .comparison + .value");
+      }
+      const comparison = hasEquals ? "equals" : element.comparison;
+      const operand = hasEquals ? element.equals : element.value;
+      if (!WHEN_COMPARISONS.includes(comparison)) {
+        throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".comparison must be above|at_least|below|at_most|equals|not_equals");
+      }
+      if (!Number.isInteger(operand)) {
+        throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + (hasEquals ? ".equals" : ".value") + " must be an integer");
+      }
+      if (element.source === "index" && (operand < 0 || operand >= nearestRepeatMax)) {
         throw new InterfaceIntentError(
           "HOLD_INTERFACE_REPEAT_SCOPE",
-          at + ".equals for index must be from 0 through " + (nearestRepeatMax - 1) + " for the nearest repeat"
+          at + (hasEquals ? ".equals" : ".value") + " for index must be from 0 through " + (nearestRepeatMax - 1) + " for the nearest repeat"
         );
       }
-      if (element.source === "count" && (element.equals < 1 || element.equals > nearestRepeatMax)) {
+      if (element.source === "count" && (operand < 1 || operand > nearestRepeatMax)) {
         throw new InterfaceIntentError(
           "HOLD_INTERFACE_REPEAT_SCOPE",
-          at + ".equals for count must be from 1 through " + nearestRepeatMax + " for the nearest repeat"
+          at + (hasEquals ? ".equals" : ".value") + " for count must be from 1 through " + nearestRepeatMax + " for the nearest repeat"
         );
       }
       if (!Array.isArray(element.children) || element.children.length === 0) {
         throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".children must be a non-empty array");
       }
-      return {
+      const normalized = {
         kind: "repeat_when",
         source: element.source,
-        equals: element.equals,
         children: normalizeElements(element.children, atDepth + 1, budget, ownerRoot, nearestRepeatMax)
       };
+      if (hasEquals) normalized.equals = element.equals;
+      else {
+        normalized.comparison = comparison;
+        normalized.value = operand;
+      }
+      return normalized;
     }
     if (element.kind === "tile") {
       const hasId = element.tile_id !== undefined;
