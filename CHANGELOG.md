@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.5.7 — 2026-09-21
+
+- Tightened presentation authoring so `placement.anchor` is accepted only when `placement.mode` is `tile`, matching the only MorphTile runtime branch that resolves an anchor.
+- Added regression-first evidence that previous Interface behavior accepted a `screen` presentation with an inert canonical anchor, then made that request fail closed with `HOLD_INVALID_PRESENTATION_PLACEMENT` instead of preserving meaningless authored matter.
+- Preserved MorphTile's native tile-mode self-anchor default: tile presentation may still omit `anchor`; an explicit tile anchor still produces the existing tile-existence proof dependency.
+- Re-pinned Assembly receiver evidence to current integrated Assembly main `fae372da63ceeb1b4c3711f0b2b0b22b68bb909d` without widening receiver authority.
+- Kept MorphTile core unchanged because the universal presentation runtime already exists; this is producer-side semantic consumption policy.
+
+## 0.5.6 — 2026-09-20
+
+- Added bounded explicit same-root tile-path composition with authored `{ kind: "tile", tile_path: "mt_shell/mt_inner" }`.
+- Compiled canonical same-root paths to MorphTile's unambiguous native `{ tile: "/mt_shell/mt_inner" }` form while preserving local `tile_id` composition separately.
+- Rejected cross-root paths with `HOLD_INTERFACE_TILE_SCOPE`, ambiguous dual addressing, malformed paths, and authority-shaped extras rather than widening composition into an implicit bridge.
+- Added pinned runtime proof that the exact nested tile resolves through real MorphTile compilation, keeps ownership of its own view/state/action bindings, remains render-read-only, and rolls back exactly.
+- Independent Verification replayed the exact candidate before Director integration; PR #17 was subsequently merged as Interface main `1a941f8ff88ca590952571e3eeeeeeef6daefd77`.
+
+## 0.5.5 — 2026-09-20
+
+- Added bounded same-container tile-owned view composition with authored `{ kind: "tile", tile_id: "mt_core" }`.
+- Compiled the local reference directly to MorphTile's existing native tile-view primitive without copying target state, actions, permissions, bindings, or bridge state.
+- Kept local IDs to one segment so ordinary same-container composition did not silently become cross-container authority.
+- Added real runtime proof that existing tile-owned matter resolves read-only and missing local targets stay visibly inert instead of causing target fabrication.
+
 ## 0.5.4 — 2026-09-20
 
 - Added bounded canonical-state repeat generation with authored `{ kind: "repeat", binding, step, max, children }` containers.
