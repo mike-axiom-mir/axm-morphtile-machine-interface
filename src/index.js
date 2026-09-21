@@ -2,7 +2,7 @@
 
 const { assertRequest, result } = require("./envelope");
 const { InterfaceIntentError, TILE_PATH, normalizeInterfaceIntent } = require("./interface-intent");
-const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.7" };
+const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.8" };
 const PRESENTATION_MODES = new Set(["screen", "docked", "floating", "fullscreen", "embedded", "world", "tile"]);
 const DOCKS = new Set(["left", "right", "top", "bottom"]);
 const PRESENTATION_KEYS = new Set(["mode", "dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]);
@@ -125,7 +125,11 @@ function labelFor(intent, labelField, fallback) {
 }
 
 function nodeForElement(element) {
-  if (element.kind === "text") return { text: element.text };
+  if (element.kind === "text") {
+    const node = { text: element.text };
+    if (element.strong !== undefined) node.strong = element.strong;
+    return node;
+  }
   if (element.kind === "tile") return { tile: element.tile_path !== undefined ? "/" + element.tile_path : element.tile_id };
   if (element.kind === "row") return { row: element.children.map(nodeForElement) };
   if (element.kind === "group") return { group: element.children.map(nodeForElement) };
@@ -155,13 +159,16 @@ function buildView(intent) {
     if (intent.action) body.push({ button: intent.action, label: labelFor(intent, "action_label", intent.action) });
   }
   if (!body.length) body.push({ text: "Interface candidate" });
+  const view = {
+    title: intent.title !== undefined ? intent.title : "Interface",
+    body
+  };
+  if (intent.accent !== undefined) view.accent = intent.accent;
+  if (intent.width !== undefined) view.width = intent.width;
   return {
     op: "view.set",
     id: intent.tile_path,
-    view: {
-      title: intent.title !== undefined ? intent.title : "Interface",
-      body
-    }
+    view
   };
 }
 
@@ -219,7 +226,7 @@ function run(request) {
       evidence: [{
         kind: "AUTHORITY",
         status: "PASS",
-        check: "candidate carries only validated authored interface text, bounded native local/same-root tile composition, nested relative/conditional/repeated layout, declared symbolic bindings and presentation descriptors; no copied canonical or session state; target-local and runtime-relevant anchor proof remain explicit dependencies"
+        check: "candidate carries only validated authored interface text, bounded native view styling, bounded native local/same-root tile composition, nested relative/conditional/repeated layout, declared symbolic bindings and presentation descriptors; no copied canonical or session state; target-local and runtime-relevant anchor proof remain explicit dependencies"
       }],
       warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
     });
@@ -229,7 +236,7 @@ function run(request) {
   return result(request, MACHINE, "CANDIDATE", {
     candidate: { schema: "morphtile.view-operation/v0.5", operation: viewOperation },
     dependencies,
-    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains validated authored interface text plus bounded native local/same-root tile composition, nested relative/conditional/repeated layout and declared symbolic bindings with no copied state values; target-local proof remains an explicit dependency" }],
+    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains validated authored interface text plus bounded native view styling, bounded native local/same-root tile composition, nested relative/conditional/repeated layout and declared symbolic bindings with no copied state values; target-local proof remains an explicit dependency" }],
     warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
   });
 }
