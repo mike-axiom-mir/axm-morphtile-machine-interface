@@ -57,7 +57,7 @@ test("tile presentation anchors become an explicit existence proof dependency", 
   });
 });
 
-test("anchors that the MorphTile runtime does not resolve do not manufacture existence dependencies", () => {
+test("anchors outside tile mode HOLD before inert canonical matter or meaningless proof dependencies are emitted", () => {
   const out = run({
     ...placementRequest,
     request_id: "target-proof-inert-anchor",
@@ -66,9 +66,11 @@ test("anchors that the MorphTile runtime does not resolve do not manufacture exi
       placement: { mode: "screen", anchor: "mt_missing", user_adjustable: false }
     }
   });
-  assert.equal(out.status, "CANDIDATE");
-  assert.equal(out.dependencies.length, 1);
-  assert.equal(out.dependencies[0].id, "morphtile.interface-target-proof:mt_counter");
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INVALID_PRESENTATION_PLACEMENT");
+  assert.match(out.holds[0].detail, /anchor/);
+  assert.equal(out.candidate, null);
+  assert.deepEqual(out.dependencies, []);
 });
 
 test("proof requirements are canonical sets rather than interface-order history", () => {
