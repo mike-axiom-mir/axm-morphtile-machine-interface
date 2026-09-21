@@ -102,6 +102,18 @@ test("authored null presentation fields hold instead of becoming canonical no-op
   }
 });
 
+test("omitted optional presentation fields remain omitted rather than gaining producer defaults", () => {
+  for (const mode of ["screen", "docked", "tile"]) {
+    const out = run({
+      ...request,
+      request_id: `interface-placement-omitted-${mode}`,
+      intent: { ...request.intent, placement: { mode } }
+    });
+    assert.equal(out.status, "CANDIDATE");
+    assert.deepEqual(out.candidate.operations[1].presentation, { mode });
+  }
+});
+
 test("interactive controls require an explicit symbolic binding declaration", () => {
   const out = run({
     ...request,
