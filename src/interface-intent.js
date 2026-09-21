@@ -5,6 +5,8 @@ const { types: { isProxy } } = require("node:util");
 const INTERFACE_INTENT_FIELDS = Object.freeze([
   "tile_path",
   "title",
+  "accent",
+  "width",
   "text",
   "readout",
   "readout_label",
@@ -26,7 +28,7 @@ const LEGACY_CONTENT_FIELDS = Object.freeze([
   "action_label"
 ]);
 const ELEMENT_FIELDS = Object.freeze({
-  text: Object.freeze(["kind", "text"]),
+  text: Object.freeze(["kind", "text", "strong"]),
   readout: Object.freeze(["kind", "binding", "label"]),
   meter: Object.freeze(["kind", "binding", "min", "max", "label"]),
   control: Object.freeze(["kind", "binding", "label"]),
@@ -188,7 +190,12 @@ function normalizeElements(value, depth, state, ownerRoot) {
       if (typeof element.text !== "string") {
         throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".text must be a string");
       }
-      return { kind: "text", text: element.text };
+      if (element.strong !== undefined && typeof element.strong !== "boolean") {
+        throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".strong must be boolean when supplied");
+      }
+      const normalized = { kind: "text", text: element.text };
+      if (element.strong !== undefined) normalized.strong = element.strong;
+      return normalized;
     }
     if (element.kind === "tile") {
       const hasId = element.tile_id !== undefined;
@@ -301,6 +308,26 @@ function normalizeInterfaceIntent(intent) {
 
   for (const field of ["title", "text", "readout_label", "control_label", "action_label"]) {
     assertString(authored[field], "intent." + field);
+  }
+
+  if (authored.accent !== undefined) {
+    if (
+      !Array.isArray(authored.accent) || authored.accent.length !== 3 ||
+      authored.accent.some((channel) => typeof channel !== "number" || !Number.isFinite(channel) || channel < 0 || channel > 1)
+    ) {
+      throw new InterfaceIntentError(
+        "HOLD_INTERFACE_VIEW_STYLE_INVALID",
+        "intent.accent must be three finite numbers from 0 through 1"
+      );
+    }
+  }
+  if (authored.width !== undefined) {
+    if (typeof authored.width !== "number" || !Number.isFinite(authored.width) || authored.width < 1) {
+      throw new InterfaceIntentError(
+        "HOLD_INTERFACE_VIEW_STYLE_INVALID",
+        "intent.width must be a finite number at least 1 because MorphTile clamps smaller widths"
+      );
+    }
   }
 
   const ownerRoot = authored.tile_path ? authored.tile_path.split("/")[0] : undefined;
