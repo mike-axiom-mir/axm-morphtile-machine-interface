@@ -63,3 +63,18 @@ test("repository truth describes evidence state without embedding pull-request l
     "current receiver evidence heading must remain lifecycle-neutral rather than becoming stale after merge"
   );
 });
+
+test("receiver evidence wording stays pinned rather than pretending to follow Assembly main", () => {
+  const commit = sources.assembly.commit;
+  const status = read("STATUS.md");
+
+  assert.ok(
+    status.includes(`Executable Interface receiver evidence is pinned to integrated Assembly \`${commit}\`.`),
+    "STATUS.md must describe the executable receiver commit as a pinned evidence identity"
+  );
+  assert.doesNotMatch(
+    status,
+    /Assembly receiver evidence currently targets integrated main/i,
+    "a reproducible receiver pin must not be worded as a floating claim about the latest Assembly main"
+  );
+});
