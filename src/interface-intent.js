@@ -37,11 +37,13 @@ const ELEMENT_FIELDS = Object.freeze({
   row: Object.freeze(["kind", "children"]),
   group: Object.freeze(["kind", "children"]),
   when: Object.freeze(["kind", "binding", "comparison", "threshold", "expected", "children"]),
-  repeat: Object.freeze(["kind", "binding", "step", "max", "children"])
+  repeat: Object.freeze(["kind", "binding", "step", "max", "children"]),
+  repeat_value: Object.freeze(["kind", "value"])
 });
 const WHEN_THRESHOLD_COMPARISONS = Object.freeze(["above", "at_least", "below", "at_most"]);
 const WHEN_EQUALITY_COMPARISONS = Object.freeze(["equals", "not_equals"]);
 const WHEN_COMPARISONS = Object.freeze([...WHEN_THRESHOLD_COMPARISONS, ...WHEN_EQUALITY_COMPARISONS]);
+const REPEAT_LOCAL_VALUES = Object.freeze(["index", "count"]);
 const TILE_ID = /^[A-Za-z0-9_-]+$/;
 const TILE_PATH = /^[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/;
 const ARRAY_INDEX = /^(0|[1-9][0-9]*)$/;
@@ -158,9 +160,10 @@ function assertString(value, field) {
   }
 }
 
-function normalizeElements(value, depth, state, ownerRoot) {
+function normalizeElements(value, depth, state, ownerRoot, repeatDepth) {
   if (value === undefined) return undefined;
   const atDepth = depth === undefined ? 0 : depth;
+  const atRepeatDepth = repeatDepth === undefined ? 0 : repeatDepth;
   const budget = state || { count: 0 };
   if (!Array.isArray(value) || value.length === 0) {
     throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENTS_INVALID", "interface element lists must be non-empty arrays when supplied");
@@ -179,7 +182,7 @@ function normalizeElements(value, depth, state, ownerRoot) {
       throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + " must be an object");
     }
     if (typeof element.kind !== "string" || !Object.prototype.hasOwnProperty.call(ELEMENT_FIELDS, element.kind)) {
-      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".kind must be text|readout|meter|control|action|tile|row|group|when|repeat");
+      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".kind must be text|readout|meter|control|action|tile|row|group|when|repeat|repeat_value");
     }
     const allowed = ELEMENT_FIELDS[element.kind];
     const unknown = Object.keys(element).filter((key) => !allowed.includes(key)).sort();
@@ -199,6 +202,18 @@ function normalizeElements(value, depth, state, ownerRoot) {
       const normalized = { kind: "text", text: element.text };
       if (element.strong !== undefined) normalized.strong = element.strong;
       return normalized;
+    }
+    if (element.kind === "repeat_value") {
+      if (atRepeatDepth < 1) {
+        throw new InterfaceIntentError(
+          "HOLD_INTERFACE_REPEAT_SCOPE",
+          at + " may only read the nearest lexical repeat scope; it is not a canonical-state binding"
+        );
+      }
+      if (!REPEAT_LOCAL_VALUES.includes(element.value)) {
+        throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".value must be index|count");
+      }
+      return { kind: "repeat_value", value: element.value };
     }
     if (element.kind === "tile") {
       const hasId = element.tile_id !== undefined;
@@ -272,7 +287,8 @@ function normalizeElements(value, depth, state, ownerRoot) {
           throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".max must be an integer from 1 through " + MAX_REPEAT_ITEMS);
         }
       }
-      const normalized = { kind: element.kind, children: normalizeElements(element.children, atDepth + 1, budget, ownerRoot) };
+      const childRepeatDepth = element.kind === "repeat" ? atRepeatDepth + 1 : atRepeatDepth;
+      const normalized = { kind: element.kind, children: normalizeElements(element.children, atDepth + 1, budget, ownerRoot, childRepeatDepth) };
       if (element.kind === "when") {
         normalized.binding = element.binding;
         if (element.comparison !== undefined) {
@@ -374,7 +390,7 @@ function normalizeInterfaceIntent(intent) {
   }
 
   const ownerRoot = authored.tile_path ? authored.tile_path.split("/")[0] : undefined;
-  const elements = normalizeElements(authored.elements, undefined, undefined, ownerRoot);
+  const elements = normalizeElements(authored.elements, undefined, undefined, ownerRoot, 0);
   if (elements !== undefined && expandedLayoutNodeCount(elements) > MAX_LAYOUT_NODES) {
     throw new InterfaceIntentError(
       "HOLD_INTERFACE_REPEAT_EXPANSION_TOO_LARGE",
@@ -402,7 +418,7 @@ function normalizeInterfaceIntent(intent) {
   const hasInteractiveLegacy = ["readout", "control", "action"].some((key) => authored[key] !== undefined && authored[key] !== null);
   const hasInteractiveElements = !!(elements && elements.some(function containsInteractive(element) {
     if (element.kind === "row" || element.kind === "group") return element.children.some(containsInteractive);
-    if (element.kind === "text" || element.kind === "tile") return false;
+    if (element.kind === "text" || element.kind === "tile" || element.kind === "repeat_value") return false;
     return true;
   }));
   if (authored.bindings !== undefined && !hasInteractiveLegacy && !hasInteractiveElements) {
@@ -423,6 +439,7 @@ module.exports = {
   WHEN_THRESHOLD_COMPARISONS,
   WHEN_EQUALITY_COMPARISONS,
   WHEN_COMPARISONS,
+  REPEAT_LOCAL_VALUES,
   TILE_ID,
   TILE_PATH,
   MAX_LAYOUT_NODES,
