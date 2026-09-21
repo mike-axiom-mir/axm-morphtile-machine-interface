@@ -1,59 +1,50 @@
 # Status
 
-- Machine version: 0.5.12
+- Machine version: 0.5.13
 - State: CANDIDATE — EXACT-HEAD CI + INDEPENDENT VERIFICATION REQUIRED
 - Local tests: `npm test`
 - MorphTile target: v0.4 at `2bdf8eade1376055473b9cc1b11734b72a5566e5`
-- Assembly receiver target: `1c3b59f192f036fd872a0e5245abaef684ea715f`
+- Assembly receiver target: `66eb29fa8a344a20aabce0cb73f1cd302166efd8`
 - Envelope: provisional v0.1
 - Visual proof: runtime vnode/HTML behavior only; aesthetic host quality remains NOT_TESTED
 
 ## Integrated baseline
 
-Interface 0.5.11 bounded equality visibility was independently verified and integrated by the Creation Director as Interface main `5488b71b3431e13eb681e301ec171a47b70a630f` before this candidate. Truthy/threshold/equality `when`, bounded canonical-state repeat, meter, tile-owned composition, native view styling and presentation-mode ownership rules therefore remain baseline behavior rather than being reimplemented here.
+Interface 0.5.12 nearest-repeat equality selectors were independently verified and integrated by the Creation Director as Interface main `ee6faff8ecfa1274ffc91c72aa46ba17185bc9ab` before this candidate. The integrated baseline therefore already includes bounded canonical-state truthy/threshold/equality conditions, bounded canonical-state repeat, meter, tile-owned composition, native view styling, mode-owned placement fields, and exact lexical repeat equality selection.
 
 ## Implemented in this candidate
 
-Interface 0.5.12 adds one bounded producer vocabulary for selecting matter from MorphTile's already-native lexical repeat scope:
+Interface 0.5.13 extends only the existing lexical `repeat_when` producer vocabulary. The old `{ kind: "repeat_when", source: "index"|"count", equals: N, children }` shorthand remains compatible. A selector may instead author `comparison` plus integer `value`, using the same bounded names already proven for canonical `when`: `above`, `at_least`, `below`, `at_most`, `equals`, or `not_equals`.
 
-- `{ kind: "repeat_when", source: "index", equals: N, children }` compiles to native `when: ["==", ["var", "i"], N]`;
-- `{ kind: "repeat_when", source: "count", equals: N, children }` compiles to native `when: ["==", ["var", "i_of"], N]`;
-- the element is legal only inside a nearest authored `repeat`;
-- `index` is zero-based and bounded by that nearest repeat's authored `max`; `count` is bounded from 1 through the nearest repeat's `max`;
-- nested selectors bind to the nearest repeat scope rather than an outer repeat;
-- repeat-local values are lexical runtime locals, not canonical target state, so they do not create readout proof dependencies;
-- child controls/actions/readouts still carry their ordinary target-proof obligations;
-- no copied state, new evaluator, bridge authority, arbitrary expression tree or permission surface is introduced.
+These compile directly to MorphTile's existing scoped native comparison expressions over lexical `i` / `i_of`. Index operands remain bounded from 0 through nearest-repeat `max - 1`; count operands remain bounded from 1 through nearest-repeat `max`; nested selectors still bind to the nearest repeat. The machine rejects half-specified forms, unsupported operators, fractional/out-of-range operands, and mixing the old `equals` shorthand with the new `comparison`/`value` form. Lexical locals remain runtime scope, not canonical state, and create no extra readout proof obligation.
 
 ## Evidence
 
-- regression-first head `03ef704d5bf5f69af4f163a05f35a167bb426883`, Actions `35564351306`: unit failed on the missing `repeat_when` vocabulary while pinned MorphTile integration and Assembly receiver integration stayed green;
-- intermediate head `4cdf76f7d5dc673aaec7b6640301e204df306651`, Actions `35564504631`: MorphTile integration and current Assembly receiver integration passed, including the new real runtime selector proof; unit was red only because three pre-existing assertions still expected machine version 0.5.11;
-- those stale version assertions were updated without weakening their semantic checks;
-- exact semantic head `18a86114c24b1602496e13c3ad28afe6d04aa164`, Actions `35564604672`: unit, MorphTile integration and Assembly receiver integration all passed before this documentation refresh;
-- final exact PR head still requires the same three green lanes after all documentation commits;
-- independent Verification must replay the final exact head before Director integration.
+- Regression-first head `3e62850f17592fbcb39b10c2ea7e5cf1ae17af2a`, Actions `35568112714`: unit and pinned MorphTile integration failed on the missing producer vocabulary while Assembly receiver integration stayed green.
+- Semantic implementation head `de0e9e7c7456ffb9c3010183606deb7cb160591e`, Actions `35568288390`: unit, pinned MorphTile integration, and Assembly receiver integration all passed. The runtime proof verifies `index >= 1`, `index < 2`, and `count >= 3` inside real repeat lexical scope while rendering stays structurally read-only and rollback remains exact.
+- Assembly was then re-pinned to current integrated main `66eb29fa8a344a20aabce0cb73f1cd302166efd8`; head `bb470197f01861e157f1127fd79014c2823d9f5e`, Actions `35568353896`, passed all three lanes.
+- Version alignment to 0.5.13 intentionally exposed three stale version assertions; only those assertions were updated. Head `3eec92718f4543dcd374face47a9eaedf8645f63`, Actions `35568690577`, passed unit, MorphTile integration, and Assembly receiver integration.
+- Independent Verification must replay the final exact PR head before Director integration.
 
-## Failed path preserved as evidence
+## Existing substrate HOLDs
 
-A broader `repeat_value` experiment was opened as Interface PR #23 and deliberately closed unmerged after core inspection showed it would be false. MorphTile's repeat runtime creates lexical `i` / `i_of` scope and its native `when` and meter paths consume that scoped evaluator, but expression-backed text currently renders through the outer label evaluator. Interface therefore does not pretend that repeat-local numeric/text value rendering works. A truthful future repair requires MorphTile core to propagate lexical repeat scope into expression-backed view text first; only then may Interface expose a bounded value vocabulary.
+MorphTile core PR #17 remains the canonical HOLD lane for propagating repeat lexical scope into expression-backed view text. Interface does not expose direct repeat-local numeric/text rendering until core genuinely consumes that lexical scope. Presentation z-order/layer authoring also remains held because current MorphTile core has no evidenced canonical z-order primitive/schema. No duplicate core candidate or private Interface workaround was created this run.
 
 ## Reusable rules learned
 
 - Lexical runtime locals are not canonical state and must not be promoted into target proof obligations or copied state.
-- A producer may expose only the portion of a substrate primitive that the runtime actually consumes; syntactically plausible output is insufficient evidence.
-- Nested lexical features must bind to the nearest owning scope and inherit that scope's bounds.
-- When core lacks a universal runtime behavior, Interface must HOLD rather than create a private evaluator or duplicate authority.
-- Receiver pins are evidence identities; compatibility must be re-earned against the current integrated receiver.
+- A bounded producer may reuse a substrate evaluator only for semantics the substrate demonstrably consumes in the same lexical scope.
+- Extend an existing bounded vocabulary before exposing a general expression language.
+- Nearest-scope bounds remain part of the authority contract even when the underlying evaluator could accept wider numbers.
+- Receiver pins are evidence identities; compatibility must be re-earned against current integrated receiver heads.
 
 ## HELD / not claimed
 
-- independent Verification of the exact Interface 0.5.12 PR head;
-- direct repeat-local index/count value rendering until MorphTile core gains scoped expression-backed text;
-- arbitrary MorphTile expression authoring, compound predicates, state-to-state comparisons or repeat-local arithmetic;
-- presentation z-order/layer authoring: current MorphTile core still has no evidenced canonical z-order primitive/schema;
-- aesthetic/host visual-quality proof;
-- arbitrary CSS/classes/raw style strings, arbitrary responsive/pixel layout or ambient host permissions;
+- independent Verification of the exact Interface 0.5.13 PR head;
+- direct repeat-local value rendering until MorphTile core PR #17 is truthfully repaired and integrated;
+- arbitrary/compound expression authoring, state-to-state comparisons, repeat-local arithmetic, or object/array predicates;
+- presentation z-order/layer authoring without a canonical core primitive;
+- aesthetic host visual quality, arbitrary CSS/classes/raw style strings, arbitrary responsive/pixel layout, or ambient host permissions;
 - cross-root/cross-container tile composition without a separate authority/proof contract;
 - compatibility beyond the exact pinned MorphTile and Assembly revisions;
 - a universal cross-machine envelope standard.
