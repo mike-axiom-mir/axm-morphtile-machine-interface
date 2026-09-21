@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.10 — 2026-09-21
+
+- Extended the existing canonical-state `when` element with an optional bounded numeric threshold contract: `comparison` plus finite numeric `threshold`.
+- Added only four producer comparisons — `above`, `at_least`, `below`, `at_most` — and compiled them directly to MorphTile's existing native `>`, `>=`, `<`, `<=` expression operators.
+- Preserved the original truthy `when` form unchanged when no threshold fields are authored.
+- Reused the existing symbolic readout declaration and target-proof lane; the threshold is authored configuration while the live value remains canonical target state.
+- Rejected half-specified threshold contracts, unsupported comparison names, non-numeric thresholds, and authority-shaped snapshot extras.
+- Added regression-first unit evidence plus pinned runtime proof that visibility follows real `mt_tower.beacon` state, remains render-read-only, preserves nested input-action authority, and rolls back exactly.
+- Refreshed Assembly receiver evidence to integrated Assembly `92eaf40c2f458687a6a9ba6361cc0ec3ff540d0b`.
+- Kept MorphTile core unchanged because conditional evaluation and comparison operators are already universal runtime primitives; the gap was bounded Interface producer vocabulary.
+
 ## 0.5.9 — 2026-09-21
 
 - Tightened presentation authoring so `placement.dock` is accepted only when `placement.mode` is `docked`, matching the presentation mode that owns docking semantics.

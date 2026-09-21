@@ -2,12 +2,13 @@
 
 const { assertRequest, result } = require("./envelope");
 const { InterfaceIntentError, TILE_PATH, normalizeInterfaceIntent } = require("./interface-intent");
-const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.9" };
+const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.10" };
 const PRESENTATION_MODES = new Set(["screen", "docked", "floating", "fullscreen", "embedded", "world", "tile"]);
 const DOCKS = new Set(["left", "right", "top", "bottom"]);
 const PRESENTATION_KEYS = new Set(["mode", "dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]);
 const BINDING_KEYS = new Set(["readouts", "actions", "controls"]);
 const SYMBOLIC_BINDING = /^[A-Za-z0-9_.-]+$/;
+const WHEN_COMPARISON_OPS = Object.freeze({ above: ">", at_least: ">=", below: "<", at_most: "<=" });
 
 function finiteVector(value, length) {
   return Array.isArray(value) && value.length === length && value.every((n) => typeof n === "number" && Number.isFinite(n));
@@ -134,7 +135,12 @@ function nodeForElement(element) {
   if (element.kind === "tile") return { tile: element.tile_path !== undefined ? "/" + element.tile_path : element.tile_id };
   if (element.kind === "row") return { row: element.children.map(nodeForElement) };
   if (element.kind === "group") return { group: element.children.map(nodeForElement) };
-  if (element.kind === "when") return { group: element.children.map(nodeForElement), when: ["var", element.binding] };
+  if (element.kind === "when") {
+    const condition = element.comparison === undefined
+      ? ["var", element.binding]
+      : [WHEN_COMPARISON_OPS[element.comparison], ["var", element.binding], element.threshold];
+    return { group: element.children.map(nodeForElement), when: condition };
+  }
   if (element.kind === "repeat") {
     return {
       repeat: ["max", 0, ["min", element.max, ["floor", ["/", ["var", element.binding], element.step]]]],
@@ -227,7 +233,7 @@ function run(request) {
       evidence: [{
         kind: "AUTHORITY",
         status: "PASS",
-        check: "candidate carries only validated authored interface text, bounded native view styling, bounded native local/same-root tile composition, nested relative/conditional/repeated layout, declared symbolic bindings and mode-owned presentation descriptors; no copied canonical or session state; target-local and runtime-relevant anchor proof remain explicit dependencies"
+        check: "candidate carries only validated authored interface text, bounded native view styling, bounded native local/same-root tile composition, nested relative/conditional/threshold/repeated layout, declared symbolic bindings and mode-owned presentation descriptors; no copied canonical or session state; target-local and runtime-relevant anchor proof remain explicit dependencies"
       }],
       warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
     });
@@ -237,7 +243,7 @@ function run(request) {
   return result(request, MACHINE, "CANDIDATE", {
     candidate: { schema: "morphtile.view-operation/v0.5", operation: viewOperation },
     dependencies,
-    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains validated authored interface text plus bounded native view styling, bounded native local/same-root tile composition, nested relative/conditional/repeated layout and declared symbolic bindings with no copied state values; target-local proof remains an explicit dependency" }],
+    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains validated authored interface text plus bounded native view styling, bounded native local/same-root tile composition, nested relative/conditional/threshold/repeated layout and declared symbolic bindings with no copied state values; target-local proof remains an explicit dependency" }],
     warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
   });
 }
@@ -247,6 +253,7 @@ module.exports = {
   PRESENTATION_MODES,
   PRESENTATION_KEYS,
   BINDING_KEYS,
+  WHEN_COMPARISON_OPS,
   normalizePlacement,
   normalizeBindings,
   requestedBindings,
