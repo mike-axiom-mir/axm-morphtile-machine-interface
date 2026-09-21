@@ -4,7 +4,7 @@
 - State: INTEGRATED BASELINE — version 0.5.14
 - Local tests: `npm test`
 - MorphTile target: v0.4 at `2bdf8eade1376055473b9cc1b11734b72a5566e5`
-- Assembly receiver evidence target: `4b7f89f83dff90d07ab6e70b7b40e8623579bbf1`
+- Assembly receiver evidence target: `9fe8b53daf3e572c596c142859cca2199a976553`
 - Envelope: provisional v0.1
 - Visual proof: runtime vnode/HTML behavior only; aesthetic host quality remains NOT_TESTED
 
@@ -16,7 +16,9 @@ The integrated machine includes bounded canonical-state readouts, meters, truthy
 
 0.5.14 closes a producer source-integrity hole in optional presentation authorship. Explicit authored `null` now fails closed for `dock`, `preferred_size`, `preferred_position`, `user_adjustable`, and `anchor`; genuine omission remains valid and preserves MorphTile-owned defaults. The independently verified exact candidate head was `55f9ea7e96db0c65c7440550c9f4a7800facd34e` before Director integration.
 
-Assembly advanced again to integrated main `4b7f89f83dff90d07ab6e70b7b40e8623579bbf1`, repairing its Interface-v0.5 presentation receiver contract around omission versus authored `false` / numeric zero. Interface PR #30 re-proved that exact receiver using a real Interface-generated `morphtile.interface-operations/v0.5` positive-control candidate and exact pinned receiver replay. Independent Verification accepted exact candidate `f78355d9212cc15abb4535edfdd370225ffaaee5` through Verification PR #52, and the Creation Director merged Interface PR #30 to main at `bcfb0189773c5ddf20b7b85887b61995c371c347`. PR #30 changed integration evidence only; `src/`, `machine.json`, `package.json`, and the workflow remained byte-identical to the integrated predecessor.
+Assembly's Interface-v0.5 presentation receiver repair was independently re-proved by Interface PR #30 against integrated Assembly `4b7f89f83dff90d07ab6e70b7b40e8623579bbf1` using a real Interface-generated `morphtile.interface-operations/v0.5` positive-control candidate. Independent Verification accepted exact candidate `f78355d9212cc15abb4535edfdd370225ffaaee5` through Verification PR #52, and the Creation Director merged Interface PR #30 to main at `bcfb0189773c5ddf20b7b85887b61995c371c347`.
+
+Assembly has since advanced to integrated main `9fe8b53daf3e572c596c142859cca2199a976553`, which preserves upstream-HOLD authority and additionally fails closed on malformed status-less `{ candidate: ... }` wrapper payloads while keeping valid plain-map wrappers compatible. The current Interface candidate refreshes the exact receiver pin to that integrated head and reruns the existing producer-generated positive-control suite rather than inheriting compatibility from the older receiver receipt. No Interface runtime/schema/authority widening is implied by this receiver refresh.
 
 ## Current substrate HOLD
 
@@ -33,7 +35,7 @@ Interface does not expose direct repeat-local value rendering until core genuine
 - Extend an existing bounded vocabulary before exposing a general expression language.
 - Expression-backed node labels and the action/control they decorate are separate concerns: fixing label scope must never widen signal or parameter authority.
 - Receiver pins are evidence identities; compatibility must be re-earned against exact tested receiver heads whenever receiver semantics advance.
-- When a receiver contract changes around representation states such as omission, `false`, and zero, preserve an exact producer-generated positive-control specimen in the integration suite instead of relying on a pin alone.
+- When a receiver contract changes around representation states such as omission, `false`, zero, or compatibility-wrapper shape, preserve an exact producer-generated positive-control specimen and rerun it against the exact integrated receiver rather than relying on a pin alone.
 
 ## HELD / not claimed
 
