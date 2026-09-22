@@ -20,6 +20,7 @@
 - [ ] Keep expression-backed meter/button/control labels under the same core lexical-scope rule when nested in repeats; do not work around the core by copying repeat locals or action/control authority into Interface matter.
 - [ ] Define a separate proof/authority contract before any cross-root tile composition is exposed; do not infer cross-root authority from same-root paths.
 - [x] Add pinned host-side structural vnode/HTML evidence for every Interface-supported presentation mode, including receiver-owned dock defaults and session-only user adjustments, while keeping aesthetic quality NOT_TESTED and host/session state non-canonical.
+- [x] Give every registered integration proof one unique stable semantic claim identity in addition to its executable path and dependency identities, and make the registry validator fail closed on missing, malformed or duplicate claims.
 - [ ] Add presentation z-order/layer authoring only after a canonical MorphTile substrate primitive/schema is evidenced; do not invent a private Interface-only ordering contract.
 - [x] Add negative integration fixtures for missing anchors and unsupported host-mode HOLD outcomes.
 - [x] Deepen safe action-binding fixtures across real input, internal rule, attach socket, output signal and missing socket names while keeping state references symbolic rather than copied.
