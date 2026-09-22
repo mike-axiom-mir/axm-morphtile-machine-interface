@@ -2,10 +2,12 @@
   "schema": "axm.interface-integration-proofs/v0.2",
   "proofs": [
     { "path": "test/action-authority.integration.test.js", "claim": "action-input-authority", "dependencies": ["morphtile"] },
+    { "path": "test/action-write-through-presentation.integration.test.js", "claim": "canonical-action-write-through-presentations", "dependencies": ["morphtile"] },
     { "path": "test/assembly-dependency.integration.test.js", "claim": "assembly-dependency-folding", "dependencies": ["assembly", "morphtile"] },
     { "path": "test/assembly-plan-coverage.integration.test.js", "claim": "assembly-import-plan-coverage", "dependencies": ["assembly", "morphtile"] },
     { "path": "test/binding-namespace-authority.integration.test.js", "claim": "binding-namespace-authority", "dependencies": ["assembly", "morphtile"] },
     { "path": "test/conditional.integration.test.js", "claim": "canonical-truthy-condition", "dependencies": ["morphtile"] },
+    { "path": "test/control-write-through-presentation.integration.test.js", "claim": "canonical-control-write-through-presentations", "dependencies": ["morphtile"] },
     { "path": "test/equality-conditional.integration.test.js", "claim": "canonical-scalar-equality", "dependencies": ["morphtile"] },
     { "path": "test/meter.integration.test.js", "claim": "canonical-meter-readout", "dependencies": ["morphtile"] },
     { "path": "test/morphtile.integration.test.js", "claim": "basic-view-commit-rollback", "dependencies": ["morphtile"] },
