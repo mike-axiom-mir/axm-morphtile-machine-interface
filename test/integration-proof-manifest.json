@@ -15,6 +15,7 @@
     { "path": "test/repeat-local-comparison.integration.test.js", "claim": "repeat-local-relational-selector", "dependencies": ["morphtile"] },
     { "path": "test/repeat-local-conditional.integration.test.js", "claim": "repeat-local-equality-selector", "dependencies": ["morphtile"] },
     { "path": "test/repeat.integration.test.js", "claim": "canonical-repeat-generation", "dependencies": ["morphtile"] },
+    { "path": "test/shared-binding-views.integration.test.js", "claim": "shared-binding-view-multiplicity", "dependencies": ["morphtile"] },
     { "path": "test/shared-canonical-control.integration.test.js", "claim": "shared-canonical-control", "dependencies": ["morphtile"] },
     { "path": "test/threshold-conditional.integration.test.js", "claim": "canonical-threshold-condition", "dependencies": ["morphtile"] },
     { "path": "test/tile-composition.integration.test.js", "claim": "local-tile-composition", "dependencies": ["morphtile"] },
