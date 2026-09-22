@@ -1,7 +1,7 @@
 # Status
 
 - Machine version: 0.5.14
-- State: CURRENT ASSEMBLY PLAN-COVERAGE RECEIVER EVIDENCE — runtime semantics unchanged
+- State: PINNED ASSEMBLY PLAN-COVERAGE RECEIVER EVIDENCE — runtime semantics unchanged
 - Local tests: `npm test`
 - MorphTile target: v0.4 at `2bdf8eade1376055473b9cc1b11734b72a5566e5`
 - Assembly receiver evidence target: `c45f8305196d149362045cef339ff1634f9095fe`
@@ -18,7 +18,7 @@ The integrated machine includes bounded canonical-state readouts, meters, truthy
 
 ## Current receiver evidence
 
-Assembly receiver evidence currently targets integrated main `c45f8305196d149362045cef339ff1634f9095fe`. This receiver adds two bounded evidence/source-integrity layers relevant to ordinary Interface output: READY import plans must cover the declared kit before any operation is applied, and authored `view` / `presentation` containers must remain plain structured maps rather than being reinterpreted through host truthiness or wrong-container behavior.
+Executable Interface receiver evidence is pinned to integrated Assembly `c45f8305196d149362045cef339ff1634f9095fe`. This is a reproducible evidence identity, not a floating claim that the pin follows the latest Assembly main. This receiver adds two bounded evidence/source-integrity layers relevant to ordinary Interface output: READY import plans must cover the declared kit before any operation is applied, and authored `view` / `presentation` containers must remain plain structured maps rather than being reinterpreted through host truthiness or wrong-container behavior.
 
 The integrated Interface proof reuses a real root-local Interface-authored specimen. The specimen preserves a plain authored view plus a docked presentation with genuine `dock` omission, numeric `[0, 0]`, and explicit `user_adjustable: false`; then it passes through Assembly folding, local target-proof discharge, MorphTile kit materialization, READY planning, import-plan coverage, ordered application, and installed-receiver closure.
 
@@ -39,6 +39,7 @@ Interface does not expose direct repeat-local value rendering until core genuine
 - Extend an existing bounded vocabulary before exposing a general expression language.
 - Expression-backed node labels and the action/control they decorate are separate concerns: fixing label scope must never widen signal or parameter authority.
 - Receiver pins are evidence identities; compatibility must be re-earned against exact tested receiver heads whenever receiver semantics advance.
+- A receiver evidence pin is not a floating-main claim. If a downstream main moves only in evidence/CI machinery and no relevant receiver runtime semantics change, preserve the tested pin until compatibility is deliberately re-earned rather than silently retargeting it.
 - When a receiver changes from planning proof to application proof, a producer compatibility suite should send at least one real producer-generated specimen through the complete receiver path rather than merely update a SHA or inspect folded structure.
 - Execution success is not installed-state proof. When receiver semantics add postcondition closure, producer compatibility must require that closure evidence rather than inheriting confidence from `KIT_APPLY` alone.
 - A READY result is not proof that the returned plan still represents every declared kit item. Import-plan coverage, ordered application, and installed receiver closure are separate evidence layers and should remain separately asserted.
