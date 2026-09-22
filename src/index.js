@@ -2,7 +2,7 @@
 
 const { assertRequest, result } = require("./envelope");
 const { InterfaceIntentError, TILE_PATH, normalizeInterfaceIntent } = require("./interface-intent");
-const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.16" };
+const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.17" };
 const PRESENTATION_MODES = new Set(["screen", "docked", "floating", "fullscreen", "embedded", "world", "tile"]);
 const DOCKS = new Set(["left", "right", "top", "bottom"]);
 const PRESENTATION_KEYS = new Set(["mode", "dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]);
@@ -43,7 +43,15 @@ function normalizeBindings(value) {
     const list = value[key] === undefined ? [] : value[key];
     if (!Array.isArray(list)) return { ok: false, error: `intent.bindings.${key} must be an array of symbolic names` };
     if (list.some((name) => typeof name !== "string" || !SYMBOLIC_BINDING.test(name))) return { ok: false, error: `intent.bindings.${key} must contain only symbolic names` };
-    normalized[key] = [...new Set(list)].sort();
+    const unique = [...new Set(list)];
+    if (unique.length !== list.length) {
+      const duplicates = [...new Set(list.filter((name, index) => list.indexOf(name) !== index))].sort();
+      return {
+        ok: false,
+        error: `intent.bindings.${key} contains duplicate symbolic name${duplicates.length === 1 ? "" : "s"}: ${duplicates.join(", ")}`
+      };
+    }
+    normalized[key] = unique.sort();
   }
   return { ok: true, value: normalized };
 }

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.17 — 2026-09-22
+
+- Reject duplicate symbolic names inside `intent.bindings.readouts`, `.actions`, or `.controls` instead of silently deduplicating authored proof vocabulary.
+- Preserve legitimate view multiplicity: multiple readout/action/control surfaces may still share one declared target capability, while the authority declaration itself is unique.
+- Keep canonical state, target proof structure, MorphTile Core pins, Assembly receiver pins, and bridge permissions unchanged.
+
 ## 0.5.14 — 2026-09-21
 
 - Rejected explicit authored `null` for optional presentation fields `dock`, `preferred_size`, `preferred_position`, `user_adjustable`, and `anchor`; genuine omission remains distinct and preserves MorphTile-owned defaults.

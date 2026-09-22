@@ -42,7 +42,7 @@ Important creation-side rules:
 - `repeat_text` and `repeat_label` may render only the nearest lexical repeat's `index` or `count` with optional static prefix/suffix; they cannot author arbitrary expressions or canonical locals;
 - numeric threshold `when` authoring may carry only one of four fixed comparisons plus one finite numeric threshold;
 - equality `when` authoring may carry only `equals` or `not_equals` plus one portable scalar `expected` value; object/array/state-to-state predicates and arbitrary expression trees remain outside the contract;
-- every declared symbolic binding must be consumed by the authored interface; extra declarations HOLD instead of disappearing;
+- every declared symbolic binding must be unique and consumed by the authored interface; duplicate or extra declarations HOLD instead of being silently collapsed or disappearing;
 - an embedded tile does not require or inherit parent binding declarations because it remains owner of its own view/state/actions;
 - orphan labels or binding declarations HOLD instead of disappearing;
 - authored text and ordered layout are preserved deterministically;

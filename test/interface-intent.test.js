@@ -8,7 +8,7 @@ function clone(value) {
 }
 
 test("machine v0.5 fails closed on malformed and unknown top-level interface intent", () => {
-  assert.equal(MACHINE.version, "0.5.16");
+  assert.equal(MACHINE.version, "0.5.17");
 
   for (const intent of ["panel", [], 7, null]) {
     const out = run({ ...fixture, request_id: "interface-intent-invalid-" + String(intent), intent });
@@ -218,4 +218,50 @@ test("explicit undefined intent fields HOLD instead of disappearing through JSON
   assert.equal(out.holds[0].code, "HOLD_INTERFACE_INTENT_NONPORTABLE_VALUE");
   assert.match(out.holds[0].detail, /intent\.text/);
   assert.equal(out.candidate, null);
+});
+
+test("duplicate symbolic binding declarations HOLD instead of being silently deduplicated", () => {
+  const cases = [
+    {
+      key: "actions",
+      name: "increment",
+      build() {
+        const request = clone(fixture);
+        request.intent.bindings.actions.push("increment");
+        return request;
+      }
+    },
+    {
+      key: "readouts",
+      name: "count",
+      build() {
+        const request = clone(fixture);
+        request.intent.bindings.readouts.push("count");
+        return request;
+      }
+    },
+    {
+      key: "controls",
+      name: "count",
+      build() {
+        const request = clone(fixture);
+        request.intent = {
+          tile_path: "mt_counter",
+          control: "count",
+          bindings: { controls: ["count", "count"] }
+        };
+        return request;
+      }
+    }
+  ];
+
+  for (const entry of cases) {
+    const request = entry.build();
+    request.request_id = `interface-duplicate-${entry.key}`;
+    const out = run(request);
+    assert.equal(out.status, "HOLD");
+    assert.equal(out.holds[0].code, "HOLD_INVALID_INTERFACE_BINDING");
+    assert.equal(out.holds[0].detail, `intent.bindings.${entry.key} contains duplicate symbolic name: ${entry.name}`);
+    assert.equal(out.candidate, null);
+  }
 });

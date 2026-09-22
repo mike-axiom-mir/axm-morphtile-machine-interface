@@ -1,6 +1,7 @@
 # Roadmap
 
 - [x] Add bounded same-container tile-owned view composition over MorphTile's native `{ tile: id }` view primitive without copying target state or bindings.
+- [x] Fail closed on duplicate symbolic binding declarations so proof vocabulary is unique even when multiple view surfaces legitimately share one capability.
 - [x] Add explicit same-root full-path tile composition while keeping cross-root composition held behind a separate authority contract.
 - [x] Reject presentation `anchor` outside tile mode and `dock` outside docked mode while preserving meaningful MorphTile defaults by omission.
 - [x] Reject explicit authored `null` for optional presentation descriptors while keeping genuine omission distinct and preserving receiver-owned defaults.
