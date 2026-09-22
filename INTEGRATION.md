@@ -41,4 +41,4 @@ The machine never receives authority to copy canonical values or session placeme
 
 Current merged MorphTile core universally enforces custom-view action authority: only an existing `kind: "signal", dir: "in"` socket becomes actionable. Internal rule names, attach sockets, output sockets and absent names remain visible but inert even if a direct caller bypasses this machine.
 
-Assembly receiver compatibility is separately pinned to `03206629321a023c046c7ee900a926bb6698f154` in CI. Compatibility beyond the exact pinned revisions is not claimed until re-tested and re-pinned for a real semantic candidate.
+Assembly receiver compatibility is separately pinned to `726fb4ad8efc4068bcda0c2c3d5e3873335b280e` in CI. Compatibility beyond the exact pinned revisions is not claimed until re-tested and re-pinned for a real semantic candidate.
