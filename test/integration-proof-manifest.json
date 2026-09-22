@@ -13,6 +13,7 @@
     { "path": "test/presentation-anchor-portability.integration.test.js", "claim": "presentation-anchor-portability", "dependencies": ["morphtile"] },
     { "path": "test/presentation-holds.integration.test.js", "claim": "presentation-hold-outcomes", "dependencies": ["morphtile"] },
     { "path": "test/presentation-host.integration.test.js", "claim": "presentation-host-modes", "dependencies": ["morphtile"] },
+    { "path": "test/presentation-mode-shared-control.integration.test.js", "claim": "host-mode-shared-canonical-control", "dependencies": ["morphtile"] },
     { "path": "test/repeat-local-comparison.integration.test.js", "claim": "repeat-local-relational-selector", "dependencies": ["morphtile"] },
     { "path": "test/repeat-local-conditional.integration.test.js", "claim": "repeat-local-equality-selector", "dependencies": ["morphtile"] },
     { "path": "test/repeat.integration.test.js", "claim": "canonical-repeat-generation", "dependencies": ["morphtile"] },
