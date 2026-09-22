@@ -40,6 +40,7 @@ replaceOnce(
   ].join("\n")
 );
 replaceOnce("machine.json", '"version":"0.5.16"', '"version":"0.5.17"');
+replaceOnce("package.json", '"version":"0.5.16"', '"version":"0.5.17"');
 replaceOnce("test/interface-intent.test.js", 'assert.equal(MACHINE.version, "0.5.16");', 'assert.equal(MACHINE.version, "0.5.17");');
 replaceOnce("INTEGRATION.md", "- machine version: 0.5.16", "- machine version: 0.5.17");
 replaceOnce("STATUS.md", "- Machine version: 0.5.16", "- Machine version: 0.5.17");
