@@ -16,6 +16,8 @@ Dependency direction is one-way: this machine may target MorphTile's public cont
 
 The pinned MorphTile checkout in GitHub Actions is test-time evidence only. It is not a runtime package dependency and does not introduce shared mutable state. The integration harness asserts the checked-out runtime identity against the manifest pin before claiming compatibility. Assembly receiver integration is likewise an exact evidence pin, not a runtime dependency.
 
+Integration evidence has three separate identities. The proof `path` names the executable test, `dependencies` select the capable pinned receiver/substrate lanes, and the stable semantic `claim` names what that proof establishes. `test/integration-proof-manifest.json` is the one registry for all three; its validator fails closed on unregistered proof files, unknown dependencies, and missing, malformed or duplicate semantic claim identities. This keeps proof meaning inspectable without turning PR lifecycle wording or filenames into authority.
+
 Repository isolation rules remain: no sibling imports at runtime, no sibling writes, no shared mutable state, no assumed installed machines, and no automatic CANON.
 
 Canonical/runtime authority gaps that affect every MorphTile caller belong in MorphTile core. In particular, whether a compiled UI button may emit a signal without a real exposed input signal socket is a core runtime contract, not something this machine can make safe for callers that bypass it. Bounded conditional creation remains Interface-owned because MorphTile already supplies the universal native `when` runtime primitive.

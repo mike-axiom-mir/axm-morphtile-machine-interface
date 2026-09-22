@@ -7,6 +7,7 @@ const { spawnSync } = require("node:child_process");
 const root = path.resolve(__dirname, "..");
 const manifestPath = path.join(root, "test", "integration-proof-manifest.json");
 const KNOWN_DEPENDENCIES = new Set(["assembly", "morphtile"]);
+const CLAIM_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function loadManifest() {
   return JSON.parse(fs.readFileSync(manifestPath, "utf8"));
@@ -20,14 +21,15 @@ function listIntegrationProofFiles() {
 }
 
 function validateManifest(manifest, actualProofFiles = listIntegrationProofFiles()) {
-  if (!manifest || manifest.schema !== "axm.interface-integration-proofs/v0.1") {
-    throw new Error("integration proof manifest schema must be axm.interface-integration-proofs/v0.1");
+  if (!manifest || manifest.schema !== "axm.interface-integration-proofs/v0.2") {
+    throw new Error("integration proof manifest schema must be axm.interface-integration-proofs/v0.2");
   }
   if (!Array.isArray(manifest.proofs) || manifest.proofs.length === 0) {
     throw new Error("integration proof manifest must declare at least one proof");
   }
 
   const seen = new Set();
+  const claims = new Set();
   const declared = [];
 
   for (const proof of manifest.proofs) {
@@ -39,6 +41,14 @@ function validateManifest(manifest, actualProofFiles = listIntegrationProofFiles
     }
     seen.add(proof.path);
     declared.push(proof.path);
+
+    if (typeof proof.claim !== "string" || !CLAIM_ID.test(proof.claim)) {
+      throw new Error(`integration proof ${proof.path} must declare one lowercase kebab-case semantic claim identity`);
+    }
+    if (claims.has(proof.claim)) {
+      throw new Error(`duplicate integration proof semantic claim identity: ${proof.claim}`);
+    }
+    claims.add(proof.claim);
 
     if (!Array.isArray(proof.dependencies) || proof.dependencies.length === 0) {
       throw new Error(`integration proof ${proof.path} must declare at least one dependency`);
@@ -117,6 +127,7 @@ if (require.main === module) {
 
 module.exports = {
   KNOWN_DEPENDENCIES,
+  CLAIM_ID,
   loadManifest,
   listIntegrationProofFiles,
   validateManifest,

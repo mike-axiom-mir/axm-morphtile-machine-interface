@@ -1,7 +1,7 @@
 # Status
 
 - Machine version: 0.5.14
-- State: PINNED ASSEMBLY PLAN-COVERAGE RECEIVER EVIDENCE — runtime semantics unchanged
+- State: PINNED RECEIVER + CLAIM-IDENTIFIED INTEGRATION EVIDENCE — runtime semantics unchanged
 - Local tests: `npm test`
 - MorphTile target: v0.4 at `2bdf8eade1376055473b9cc1b11734b72a5566e5`
 - Assembly receiver evidence target: `c45f8305196d149362045cef339ff1634f9095fe`
@@ -10,7 +10,9 @@
 
 ## Integrated baseline
 
-Interface 0.5.14 authored-null presentation integrity was independently verified and integrated by the Creation Director through PR #27. Follow-up receiver/truth work through PR #31 was independently verified and integrated. Interface PR #32 then added a real producer-generated root-local presentation specimen through Assembly folding, local proof discharge, MorphTile kit materialization, READY planning, and ordered receiver application; it was independently verified and integrated. Interface PR #33 extended that specimen through Assembly's installed receiver postcondition-closure proof. Interface PR #35 then converged receiver-evidence lifecycle truth and was independently verified and integrated to Interface main `565321eb682b2f4952adfeb2d33693fd61a51e42`. Interface PR #36 re-proved the same real producer specimen through Assembly's READY import-plan coverage and structured-container boundary, was independently verified at exact producer head `e8ec5a0497b11bc2bfa14c5d959757f585322e4c`, and integrated to Interface main as `935774d6f2cca71f528d008f8805397a6333eaea`.
+Interface 0.5.14 authored-null presentation integrity was independently verified and integrated by the Creation Director through PR #27. Follow-up receiver/truth work through PR #31 was independently verified and integrated. Interface PR #32 then added a real producer-generated root-local presentation specimen through Assembly folding, local proof discharge, MorphTile kit materialization, READY planning, and ordered receiver application; it was independently verified and integrated. Interface PR #33 extended that specimen through Assembly's installed receiver postcondition-closure proof. Interface PR #35 then converged receiver-evidence lifecycle truth. Interface PR #36 re-proved the same real producer specimen through Assembly's READY import-plan coverage and structured-container boundary and was independently verified and integrated.
+
+Subsequent integrated evidence work proved all seven supported host presentation modes and session-only user adjustment (#37), kept symbolic readout/control/action names in disjoint target authority namespaces (#38), replaced source/YAML inference with a structured executable integration-proof registry (#39), and proved that multiple authored controls remain multiple views over one target-owned canonical parameter rather than duplicate state (#40). Exact PR and merge identities remain historical receipts; persistent repository truth describes capabilities and evidence state rather than pretending a self-SHA is stable across future commits.
 
 The integrated machine includes bounded canonical-state readouts, meters, truthy/threshold/equality conditions and repeat generation; tile-owned local and exact same-root composition; native accent/width/strong styling; mode-owned placement descriptors; safe action/control bindings; nearest-repeat lexical equality plus relational selectors; source-tree/depth/expanded-repeat budgets; and exact receiver/core pinning.
 
@@ -23,6 +25,12 @@ Executable Interface receiver evidence is pinned to integrated Assembly `c45f830
 The integrated Interface proof reuses a real root-local Interface-authored specimen. The specimen preserves a plain authored view plus a docked presentation with genuine `dock` omission, numeric `[0, 0]`, and explicit `user_adjustable: false`; then it passes through Assembly folding, local target-proof discharge, MorphTile kit materialization, READY planning, import-plan coverage, ordered application, and installed-receiver closure.
 
 Regression-first head `a6e13b2bcc87a61fe489dd112413e189412126fa` deliberately retained predecessor Assembly `8a2a7bf6adf40266438945ad1482001be9d68900` while requiring `KIT_IMPORT_PLAN_COVERAGE`. Actions run `35643630860` left `unit` and `morphtile-integration` green and failed only `assembly-receiver-integration`; the existing five receiver tests passed and the new positive control failed because that predecessor emitted `KIT_APPLY` and `KIT_RECEIVER_CLOSURE` but no `KIT_IMPORT_PLAN_COVERAGE`. The repair repinned only the exact receiver evidence identity to current Assembly `c45f8305196d149362045cef339ff1634f9095fe` and retained the producer specimen unchanged. Independent Verification round 36 replayed this evidence successfully before Director integration.
+
+## Current integration evidence registry
+
+`test/integration-proof-manifest.json` is the executable registry for Interface integration proofs. Registry v0.2 gives every proof three distinct identities: an executable test path, the exact capable dependency lanes needed to run it, and one unique stable semantic claim id describing what the proof establishes. The validator fails closed on unregistered proof files, unknown/invalid dependency declarations, and absent, malformed or duplicate claim ids. Filenames, workflow comments, PR wording and source-token coincidence are not substitutes for those structured identities.
+
+The claim registry includes action input authority, Assembly dependency folding and import-plan coverage, disjoint binding namespaces, bounded canonical truthy/threshold/equality conditions, meters/readouts, basic commit/rollback, nested target paths, presentation HOLDs and host modes, repeat-local selectors, canonical repeat generation, shared canonical controls, repeated readout/control/action view multiplicity over one capability per authority namespace, local/same-root tile composition and native view styling. Claim identity records proof meaning only; it does not make a test CANON or widen runtime authority.
 
 ## Current substrate HOLD
 
@@ -47,6 +55,8 @@ Interface does not expose direct repeat-local value rendering until core genuine
 - Representation-sensitive values such as omission, `false`, and numeric zero must remain asserted on the producer specimen so stronger receiver proof does not erase source semantics.
 - Evidence lifecycle truth must converge with executable receiver identity: the current exact receiver proof cannot remain an unchecked roadmap item after that proof is established.
 - Persistent repository truth should describe evidence/capability state rather than PR lifecycle; exact candidate/merge status belongs in the PR and handoff so repository wording remains true across integration.
+- Executable proof identity, dependency identity and semantic claim identity are separate evidence layers. Every integration proof must carry one unique stable semantic claim id; a filename or CI lane says where/how evidence runs, not what it proves.
+- Multiple interface surfaces may share one symbolic target capability without multiplying canonical state or authority; view multiplicity and state multiplicity are different things.
 
 ## HELD / not claimed
 
