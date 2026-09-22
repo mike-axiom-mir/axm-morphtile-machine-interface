@@ -58,14 +58,12 @@ test("repeat-local presentation HOLDs outside a lexical repeat", () => {
     { kind: "repeat_text", source: "index", prefix: "slot " },
     { kind: "action", binding: "toggle", repeat_label: { source: "index", prefix: "toggle " } }
   ]) {
+    const intent = { tile_path: "mt_tower", elements: [element] };
+    if (element.kind === "action") intent.bindings = { actions: ["toggle"] };
     const out = run({
       ...base,
       request_id: "repeat-local-presentation-outside",
-      intent: {
-        tile_path: "mt_tower",
-        elements: [element],
-        bindings: element.kind === "action" ? { actions: ["toggle"] } : undefined
-      }
+      intent
     });
     assert.equal(out.status, "HOLD");
     assert.equal(out.holds[0].code, "HOLD_INTERFACE_REPEAT_SCOPE");
