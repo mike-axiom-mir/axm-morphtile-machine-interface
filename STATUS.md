@@ -4,7 +4,7 @@
 - State: PINNED CORE + RECEIVER + CLAIM-IDENTIFIED INTEGRATION EVIDENCE
 - Local tests: `npm test`
 - MorphTile target: v0.4 at `685df074701feeae3e9d789e532d0a3658030bf4`
-- Assembly receiver evidence target: `03206629321a023c046c7ee900a926bb6698f154`
+- Assembly receiver evidence target: `726fb4ad8efc4068bcda0c2c3d5e3873335b280e`
 - Envelope: provisional v0.1
 - Visual proof: runtime vnode/HTML behavior only; aesthetic host quality remains NOT_TESTED
 
@@ -20,7 +20,7 @@ Interface 0.5.17 consumes the now-integrated MorphTile lexical presentation prim
 
 ## Current receiver evidence
 
-Executable Interface receiver evidence is pinned to integrated Assembly `03206629321a023c046c7ee900a926bb6698f154`. This is a reproducible evidence identity, not a floating claim that the pin follows the latest Assembly main. The receiver lane replays registered Interface-to-Assembly proofs through the exact pinned receiver and exact pinned MorphTile core.
+Executable Interface receiver evidence is pinned to integrated Assembly `726fb4ad8efc4068bcda0c2c3d5e3873335b280e`. This is a reproducible evidence identity, not a floating claim that the pin follows the latest Assembly main. The receiver lane replays registered Interface-to-Assembly proofs through the exact pinned receiver and exact pinned MorphTile core. That Assembly revision's current-fleet receipt explicitly names settled Interface main `4c14818289bd2d37deaf82c732836d4d2874f3e3`, so the compatibility replay is grounded in the fleet state that already includes the integrated cross-root authority boundary.
 
 The Interface proof corpus reuses real Interface-authored specimens. Those specimens pass through Assembly folding, local target-proof discharge, MorphTile kit materialization, READY planning, import-plan coverage, ordered application, and installed-receiver closure while preserving the producer's plain structured `view` / `presentation` matter and source semantics.
 
