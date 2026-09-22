@@ -10,6 +10,7 @@
     { "path": "test/meter.integration.test.js", "claim": "canonical-meter-readout", "dependencies": ["morphtile"] },
     { "path": "test/morphtile.integration.test.js", "claim": "basic-view-commit-rollback", "dependencies": ["morphtile"] },
     { "path": "test/nested-path.integration.test.js", "claim": "nested-target-path", "dependencies": ["morphtile"] },
+    { "path": "test/presentation-anchor-portability.integration.test.js", "claim": "presentation-anchor-portability", "dependencies": ["morphtile"] },
     { "path": "test/presentation-holds.integration.test.js", "claim": "presentation-hold-outcomes", "dependencies": ["morphtile"] },
     { "path": "test/presentation-host.integration.test.js", "claim": "presentation-host-modes", "dependencies": ["morphtile"] },
     { "path": "test/repeat-local-comparison.integration.test.js", "claim": "repeat-local-relational-selector", "dependencies": ["morphtile"] },
