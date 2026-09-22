@@ -18,161 +18,23 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Prove current duplicate-declaration gap
-        run: |
-          node <<'NODE'
-          const fixture = require('./fixtures/request.counter-view.json');
-          const { run } = require('./src');
-          const request = JSON.parse(JSON.stringify(fixture));
-          request.request_id = 'prepatch-duplicate-action-binding';
-          request.intent.bindings.actions.push('increment');
-          const out = run(request);
-          if (out.status !== 'CANDIDATE') {
-            throw new Error(`expected prepatch duplicate declaration to be silently accepted, got ${out.status}: ${JSON.stringify(out.holds || [])}`);
-          }
-          console.log('PREPATCH_EVIDENCE duplicate action declaration was accepted and deduplicated implicitly');
-          NODE
-      - name: Apply bounded fail-closed repair
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          def replace_once(path, old, new):
-              p = Path(path)
-              text = p.read_text()
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f'{path}: expected exactly one occurrence of {old!r}, found {count}')
-              p.write_text(text.replace(old, new, 1))
-
-          replace_once(
-              'src/index.js',
-              'const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.16" };',
-              'const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.17" };'
-          )
-          replace_once(
-              'src/index.js',
-              '    normalized[key] = [...new Set(list)].sort();',
-              '''    const unique = [...new Set(list)];
-    if (unique.length !== list.length) {
-      const duplicates = [...new Set(list.filter((name, index) => list.indexOf(name) !== index))].sort();
-      return {
-        ok: false,
-        error: `intent.bindings.${key} contains duplicate symbolic name${duplicates.length === 1 ? "" : "s"}: ${duplicates.join(", ")}`
-      };
-    }
-    normalized[key] = unique.sort();'''
-          )
-          replace_once('machine.json', '"version":"0.5.16"', '"version":"0.5.17"')
-          replace_once('test/interface-intent.test.js', 'assert.equal(MACHINE.version, "0.5.16");', 'assert.equal(MACHINE.version, "0.5.17");')
-          replace_once('INTEGRATION.md', '- machine version: 0.5.16', '- machine version: 0.5.17')
-          replace_once('STATUS.md', '- Machine version: 0.5.16', '- Machine version: 0.5.17')
-          replace_once('STATUS.md', 'Interface 0.5.16 consumes the now-integrated MorphTile lexical presentation primitive', 'Interface 0.5.17 consumes the now-integrated MorphTile lexical presentation primitive')
-          replace_once(
-              'README.md',
-              '- every declared symbolic binding must be consumed by the authored interface; extra declarations HOLD instead of disappearing;',
-              '- every declared symbolic binding must be unique and consumed by the authored interface; duplicate or extra declarations HOLD instead of being silently collapsed or disappearing;'
-          )
-          replace_once(
-              'STATUS.md',
-              '- Multiple interface surfaces may share one symbolic target capability without multiplying canonical state or authority; view multiplicity and state multiplicity are different things.',
-              '- Multiple interface surfaces may share one symbolic target capability without multiplying canonical state or authority; view multiplicity and state multiplicity are different things.\n- Binding declaration arrays are proof vocabularies, not multisets: declare each symbolic capability once; duplicate declarations HOLD instead of being silently deduplicated.'
-          )
-          replace_once(
-              'ROADMAP.md',
-              '- [x] Add bounded same-container tile-owned view composition over MorphTile\'s native `{ tile: id }` view primitive without copying target state or bindings.',
-              '- [x] Add bounded same-container tile-owned view composition over MorphTile\'s native `{ tile: id }` view primitive without copying target state or bindings.\n- [x] Fail closed on duplicate symbolic binding declarations so proof vocabulary is unique even when multiple view surfaces legitimately share one capability.'
-          )
-
-          test_path = Path('test/interface-intent.test.js')
-          test_text = test_path.read_text()
-          marker = 'test("duplicate symbolic binding declarations HOLD instead of being silently deduplicated"'
-          if marker in test_text:
-              raise SystemExit('duplicate declaration regression test already exists unexpectedly')
-          test_text += r'''
-
-test("duplicate symbolic binding declarations HOLD instead of being silently deduplicated", () => {
-  const cases = [
-    {
-      key: "actions",
-      name: "increment",
-      build() {
-        const request = clone(fixture);
-        request.intent.bindings.actions.push("increment");
-        return request;
-      }
-    },
-    {
-      key: "readouts",
-      name: "count",
-      build() {
-        const request = clone(fixture);
-        request.intent.bindings.readouts.push("count");
-        return request;
-      }
-    },
-    {
-      key: "controls",
-      name: "count",
-      build() {
-        const request = clone(fixture);
-        request.intent = {
-          tile_path: "mt_counter",
-          control: "count",
-          bindings: { controls: ["count", "count"] }
-        };
-        return request;
-      }
-    }
-  ];
-
-  for (const entry of cases) {
-    const request = entry.build();
-    request.request_id = `interface-duplicate-${entry.key}`;
-    const out = run(request);
-    assert.equal(out.status, "HOLD");
-    assert.equal(out.holds[0].code, "HOLD_INVALID_INTERFACE_BINDING");
-    assert.equal(out.holds[0].detail, `intent.bindings.${entry.key} contains duplicate symbolic name: ${entry.name}`);
-    assert.equal(out.candidate, null);
-  }
-});
-'''
-          test_path.write_text(test_text)
-
-          changelog = Path('CHANGELOG.md')
-          changelog_text = changelog.read_text()
-          heading = '# Changelog\n'
-          if not changelog_text.startswith(heading):
-              raise SystemExit('CHANGELOG.md heading changed unexpectedly')
-          entry = '''\n## 0.5.17 — 2026-09-22\n\n- Reject duplicate symbolic names inside `intent.bindings.readouts`, `.actions`, or `.controls` instead of silently deduplicating authored proof vocabulary.\n- Preserve legitimate view multiplicity: multiple readout/action/control surfaces may still share one declared target capability, while the authority declaration itself is unique.\n- Keep canonical state, target proof structure, MorphTile Core pins, Assembly receiver pins, and bridge permissions unchanged.\n'''
-          changelog.write_text(heading + entry + changelog_text[len(heading):])
-          PY
-      - name: Prove repaired behavior and exact unit suite
+      - name: Apply bounded repair with preserved prepatch evidence
+        run: node .github/interface-binding-uniqueness-preflight.js
+      - name: Prove exact unit behavior
         run: |
           npm test
           git diff --check
-          node <<'NODE'
-          const fixture = require('./fixtures/request.counter-view.json');
-          const { MACHINE, run } = require('./src');
-          if (MACHINE.version !== '0.5.17') throw new Error(`unexpected machine version ${MACHINE.version}`);
-          const request = JSON.parse(JSON.stringify(fixture));
-          request.request_id = 'postpatch-duplicate-action-binding';
-          request.intent.bindings.actions.push('increment');
-          const out = run(request);
-          if (out.status !== 'HOLD' || out.holds?.[0]?.code !== 'HOLD_INVALID_INTERFACE_BINDING') {
-            throw new Error(`duplicate declaration did not fail closed: ${JSON.stringify(out)}`);
-          }
-          console.log('POSTPATCH_EVIDENCE duplicate action declaration fails closed without changing candidate authority');
-          NODE
+          node -e "const f=require('./fixtures/request.counter-view.json'); const m=require('./src'); const r=JSON.parse(JSON.stringify(f)); r.request_id='postpatch-duplicate-action-binding'; r.intent.bindings.actions.push('increment'); const o=m.run(r); if(m.MACHINE.version!=='0.5.17'||o.status!=='HOLD'||o.holds?.[0]?.code!=='HOLD_INVALID_INTERFACE_BINDING') process.exit(1); console.log('POSTPATCH_EVIDENCE duplicate declaration fails closed');"
       - name: Commit only the proven net repair
         run: |
           rm .github/workflows/interface-binding-uniqueness-preflight.yml
+          rm .github/interface-binding-uniqueness-preflight.js
           git diff --check
-          echo 'NET_DIFF'
+          echo NET_DIFF
           git diff --stat
           git status --short
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/index.js machine.json test/interface-intent.test.js README.md STATUS.md ROADMAP.md INTEGRATION.md CHANGELOG.md .github/workflows/interface-binding-uniqueness-preflight.yml
+          git add -A
           git commit -m 'interface: reject duplicate binding declarations'
           git push origin HEAD:specialist/binding-declaration-uniqueness-v1
