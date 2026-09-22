@@ -4,7 +4,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");
 const manifest = require("../machine.json");
-const { run, PRESENTATION_KEYS } = require("../src");
+const { run, PRESENTATION_KEYS, PRESENTATION_MODES } = require("../src");
 
 const corePath = process.env.MORPHTILE_CORE;
 const runtimeCommit = process.env.MORPHTILE_COMMIT;
@@ -32,6 +32,8 @@ test("presentation layer authoring stays held while the exact pinned MorphTile s
   assertPinnedRuntime();
   const MT = require(path.resolve(corePath));
 
+  assert.deepEqual([...PRESENTATION_MODES].sort(), [...MT.PRESENTATION_MODES].sort(),
+    "if pinned MorphTile presentation modes move, Interface must explicitly reassess its bounded mode vocabulary before claiming compatibility");
   assert.equal(PRESENTATION_KEYS.has("layer"), false, "Interface must not invent a private presentation layer field");
 
   const out = run(request({
