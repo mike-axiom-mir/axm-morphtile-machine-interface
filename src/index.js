@@ -2,7 +2,7 @@
 
 const { assertRequest, result } = require("./envelope");
 const { InterfaceIntentError, TILE_PATH, normalizeInterfaceIntent } = require("./interface-intent");
-const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.14" };
+const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.15" };
 const PRESENTATION_MODES = new Set(["screen", "docked", "floating", "fullscreen", "embedded", "world", "tile"]);
 const DOCKS = new Set(["left", "right", "top", "bottom"]);
 const PRESENTATION_KEYS = new Set(["mode", "dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]);
@@ -136,9 +136,26 @@ function labelFor(intent, labelField, fallback) {
   return intent[labelField] !== undefined ? intent[labelField] : fallback;
 }
 
+function repeatLocalExpression(descriptor) {
+  let expression = ["var", descriptor.source === "index" ? "i" : "i_of"];
+  if (descriptor.prefix !== undefined) expression = ["+", descriptor.prefix, expression];
+  if (descriptor.suffix !== undefined) expression = ["+", expression, descriptor.suffix];
+  return expression;
+}
+
+function elementLabel(element) {
+  if (element.repeat_label !== undefined) return repeatLocalExpression(element.repeat_label);
+  return element.label !== undefined ? element.label : element.binding;
+}
+
 function nodeForElement(element) {
   if (element.kind === "text") {
     const node = { text: element.text };
+    if (element.strong !== undefined) node.strong = element.strong;
+    return node;
+  }
+  if (element.kind === "repeat_text") {
+    const node = { text: repeatLocalExpression(element) };
     if (element.strong !== undefined) node.strong = element.strong;
     return node;
   }
@@ -168,7 +185,7 @@ function nodeForElement(element) {
       body: element.children.map(nodeForElement)
     };
   }
-  const label = element.label !== undefined ? element.label : element.binding;
+  const label = elementLabel(element);
   if (element.kind === "readout") return { value: element.binding, label };
   if (element.kind === "meter") return { meter: ["var", element.binding], min: element.min, max: element.max, label };
   if (element.kind === "control") return { control: element.binding, label };
@@ -262,7 +279,7 @@ function run(request) {
       evidence: [{
         kind: "AUTHORITY",
         status: "PASS",
-        check: "candidate carries only validated authored interface text, bounded native view styling, bounded native local/same-root tile composition, nested canonical-state conditions/repeats, bounded nearest-repeat lexical selectors, declared symbolic bindings and mode-owned presentation descriptors; no copied canonical or session state; target-local and runtime-relevant anchor proof remain explicit dependencies"
+        check: "candidate carries only validated authored interface text, bounded native view styling, bounded native local/same-root tile composition, nested canonical-state conditions/repeats, bounded nearest-repeat lexical selectors/rendering, declared symbolic bindings and mode-owned presentation descriptors; no copied canonical, lexical-local or session state; target-local and runtime-relevant anchor proof remain explicit dependencies"
       }],
       warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
     });
@@ -272,7 +289,7 @@ function run(request) {
   return result(request, MACHINE, "CANDIDATE", {
     candidate: { schema: "morphtile.view-operation/v0.5", operation: viewOperation },
     dependencies,
-    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains validated authored interface text plus bounded native view styling, bounded native local/same-root tile composition, nested canonical-state conditions/repeats, bounded nearest-repeat lexical selectors and declared symbolic bindings with no copied state values; target-local proof remains an explicit dependency" }],
+    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains validated authored interface text plus bounded native view styling, bounded native local/same-root tile composition, nested canonical-state conditions/repeats, bounded nearest-repeat lexical selectors/rendering and declared symbolic bindings with no copied state or lexical-local values; target-local proof remains an explicit dependency" }],
     warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
   });
 }
@@ -288,6 +305,8 @@ module.exports = {
   requestedBindings,
   targetProofDependencies,
   validateBindings,
+  repeatLocalExpression,
+  elementLabel,
   nodeForElement,
   buildView,
   run

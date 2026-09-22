@@ -26,7 +26,7 @@ test("ordered elements compile into one atomic view.set without copied state", (
   });
 
   assert.equal(out.status, "CANDIDATE");
-  assert.equal(out.machine.version, "0.5.14");
+  assert.equal(out.machine.version, "0.5.15");
   assert.deepEqual(out.candidate.operation, {
     op: "view.set",
     id: "mt_tower",

@@ -29,10 +29,11 @@ const LEGACY_CONTENT_FIELDS = Object.freeze([
 ]);
 const ELEMENT_FIELDS = Object.freeze({
   text: Object.freeze(["kind", "text", "strong"]),
+  repeat_text: Object.freeze(["kind", "source", "prefix", "suffix", "strong"]),
   readout: Object.freeze(["kind", "binding", "label"]),
-  meter: Object.freeze(["kind", "binding", "min", "max", "label"]),
-  control: Object.freeze(["kind", "binding", "label"]),
-  action: Object.freeze(["kind", "binding", "label"]),
+  meter: Object.freeze(["kind", "binding", "min", "max", "label", "repeat_label"]),
+  control: Object.freeze(["kind", "binding", "label", "repeat_label"]),
+  action: Object.freeze(["kind", "binding", "label", "repeat_label"]),
   tile: Object.freeze(["kind", "tile_id", "tile_path"]),
   row: Object.freeze(["kind", "children"]),
   group: Object.freeze(["kind", "children"]),
@@ -40,6 +41,7 @@ const ELEMENT_FIELDS = Object.freeze({
   repeat: Object.freeze(["kind", "binding", "step", "max", "children"]),
   repeat_when: Object.freeze(["kind", "source", "equals", "comparison", "value", "children"])
 });
+const REPEAT_LOCAL_DESCRIPTOR_FIELDS = Object.freeze(["source", "prefix", "suffix"]);
 const WHEN_THRESHOLD_COMPARISONS = Object.freeze(["above", "at_least", "below", "at_most"]);
 const WHEN_EQUALITY_COMPARISONS = Object.freeze(["equals", "not_equals"]);
 const WHEN_COMPARISONS = Object.freeze([...WHEN_THRESHOLD_COMPARISONS, ...WHEN_EQUALITY_COMPARISONS]);
@@ -157,6 +159,37 @@ function assertString(value, field) {
   }
 }
 
+function normalizeRepeatLocalDescriptor(value, at, nearestRepeatMax) {
+  if (nearestRepeatMax === null) {
+    throw new InterfaceIntentError(
+      "HOLD_INTERFACE_REPEAT_SCOPE",
+      at + " may only render the nearest lexical repeat scope; repeat locals are not canonical-state bindings"
+    );
+  }
+  if (!isPlainObject(value)) {
+    throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + " must be an object");
+  }
+  const unknown = Object.keys(value).filter((key) => !REPEAT_LOCAL_DESCRIPTOR_FIELDS.includes(key)).sort();
+  if (unknown.length) {
+    throw new InterfaceIntentError(
+      "HOLD_INTERFACE_ELEMENT_FIELD_UNKNOWN",
+      at + " contains unsupported field" + (unknown.length === 1 ? ": " : "s: ") + unknown.join(", ")
+    );
+  }
+  if (!REPEAT_LOCAL_SOURCES.includes(value.source)) {
+    throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".source must be index|count");
+  }
+  for (const field of ["prefix", "suffix"]) {
+    if (value[field] !== undefined && typeof value[field] !== "string") {
+      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + "." + field + " must be a string when supplied");
+    }
+  }
+  const normalized = { source: value.source };
+  if (value.prefix !== undefined) normalized.prefix = value.prefix;
+  if (value.suffix !== undefined) normalized.suffix = value.suffix;
+  return normalized;
+}
+
 function normalizeElements(value, depth, state, ownerRoot, repeatMax) {
   if (value === undefined) return undefined;
   const atDepth = depth === undefined ? 0 : depth;
@@ -179,7 +212,7 @@ function normalizeElements(value, depth, state, ownerRoot, repeatMax) {
       throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + " must be an object");
     }
     if (typeof element.kind !== "string" || !Object.prototype.hasOwnProperty.call(ELEMENT_FIELDS, element.kind)) {
-      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".kind must be text|readout|meter|control|action|tile|row|group|when|repeat|repeat_when");
+      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".kind must be text|repeat_text|readout|meter|control|action|tile|row|group|when|repeat|repeat_when");
     }
     const allowed = ELEMENT_FIELDS[element.kind];
     const unknown = Object.keys(element).filter((key) => !allowed.includes(key)).sort();
@@ -197,6 +230,15 @@ function normalizeElements(value, depth, state, ownerRoot, repeatMax) {
         throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".strong must be boolean when supplied");
       }
       const normalized = { kind: "text", text: element.text };
+      if (element.strong !== undefined) normalized.strong = element.strong;
+      return normalized;
+    }
+    if (element.kind === "repeat_text") {
+      const descriptor = normalizeRepeatLocalDescriptor({ source: element.source, prefix: element.prefix, suffix: element.suffix }, at, nearestRepeatMax);
+      if (element.strong !== undefined && typeof element.strong !== "boolean") {
+        throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".strong must be boolean when supplied");
+      }
+      const normalized = { kind: "repeat_text", ...descriptor };
       if (element.strong !== undefined) normalized.strong = element.strong;
       return normalized;
     }
@@ -349,6 +391,12 @@ function normalizeElements(value, depth, state, ownerRoot, repeatMax) {
     if (element.label !== undefined && typeof element.label !== "string") {
       throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".label must be a string when supplied");
     }
+    if (element.repeat_label !== undefined && element.label !== undefined) {
+      throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".label and .repeat_label are mutually exclusive");
+    }
+    const repeatLabel = element.repeat_label === undefined
+      ? undefined
+      : normalizeRepeatLocalDescriptor(element.repeat_label, at + ".repeat_label", nearestRepeatMax);
     if (element.kind === "meter") {
       if (
         typeof element.min !== "number" || !Number.isFinite(element.min) ||
@@ -362,10 +410,12 @@ function normalizeElements(value, depth, state, ownerRoot, repeatMax) {
       }
       const normalized = { kind: "meter", binding: element.binding, min: element.min, max: element.max };
       if (element.label !== undefined) normalized.label = element.label;
+      if (repeatLabel !== undefined) normalized.repeat_label = repeatLabel;
       return normalized;
     }
     const normalized = { kind: element.kind, binding: element.binding };
     if (element.label !== undefined) normalized.label = element.label;
+    if (repeatLabel !== undefined) normalized.repeat_label = repeatLabel;
     return normalized;
   });
 }
@@ -455,7 +505,7 @@ function normalizeInterfaceIntent(intent) {
   const hasInteractiveLegacy = ["readout", "control", "action"].some((key) => authored[key] !== undefined && authored[key] !== null);
   const hasInteractiveElements = !!(elements && elements.some(function containsInteractive(element) {
     if (element.kind === "row" || element.kind === "group" || element.kind === "repeat_when") return element.children.some(containsInteractive);
-    if (element.kind === "text" || element.kind === "tile") return false;
+    if (element.kind === "text" || element.kind === "repeat_text" || element.kind === "tile") return false;
     return true;
   }));
   if (authored.bindings !== undefined && !hasInteractiveLegacy && !hasInteractiveElements) {
@@ -473,6 +523,7 @@ module.exports = {
   INTERFACE_INTENT_FIELDS,
   LEGACY_CONTENT_FIELDS,
   ELEMENT_FIELDS,
+  REPEAT_LOCAL_DESCRIPTOR_FIELDS,
   WHEN_THRESHOLD_COMPARISONS,
   WHEN_EQUALITY_COMPARISONS,
   WHEN_COMPARISONS,
@@ -484,6 +535,7 @@ module.exports = {
   MAX_REPEAT_ITEMS,
   InterfaceIntentError,
   copyPortableIntentValue,
+  normalizeRepeatLocalDescriptor,
   normalizeElements,
   expandedLayoutNodeCount,
   normalizeInterfaceIntent
