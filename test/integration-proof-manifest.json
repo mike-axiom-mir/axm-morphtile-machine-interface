@@ -15,6 +15,7 @@
     { "path": "test/repeat-local-comparison.integration.test.js", "dependencies": ["morphtile"] },
     { "path": "test/repeat-local-conditional.integration.test.js", "dependencies": ["morphtile"] },
     { "path": "test/repeat.integration.test.js", "dependencies": ["morphtile"] },
+    { "path": "test/shared-canonical-control.integration.test.js", "dependencies": ["morphtile"] },
     { "path": "test/threshold-conditional.integration.test.js", "dependencies": ["morphtile"] },
     { "path": "test/tile-composition.integration.test.js", "dependencies": ["morphtile"] },
     { "path": "test/tile-path-composition.integration.test.js", "dependencies": ["morphtile"] },
