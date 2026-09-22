@@ -39,109 +39,54 @@ jobs:
                   raise SystemExit(f"{path}: expected exactly one match, found {count}: {old!r}")
               p.write_text(text.replace(old, new, 1))
 
-          replace_once(
-              "src/interface-intent.js",
-              '  readout: Object.freeze(["kind", "binding", "label"]),',
-              '  readout: Object.freeze(["kind", "binding", "label", "repeat_label"]),'
-          )
-          replace_once(
-              "src/index.js",
-              'const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.15" };',
-              'const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.16" };'
-          )
+          replace_once("src/interface-intent.js", '  readout: Object.freeze(["kind", "binding", "label"]),', '  readout: Object.freeze(["kind", "binding", "label", "repeat_label"]),')
+          replace_once("src/index.js", 'const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.15" };', 'const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.16" };')
           replace_once("package.json", '"version":"0.5.15"', '"version":"0.5.16"')
           replace_once("machine.json", '"version":"0.5.15"', '"version":"0.5.16"')
-          replace_once(
-              "machine.json",
-              '"commit":"34eddb9df6450a7da0da20dd596fd2b388bbb788"',
-              '"commit":"685df074701feeae3e9d789e532d0a3658030bf4"'
-          )
+          replace_once("machine.json", '"commit":"34eddb9df6450a7da0da20dd596fd2b388bbb788"', '"commit":"685df074701feeae3e9d789e532d0a3658030bf4"')
 
           unit = "test/repeat-local-presentation.test.js"
-          replace_once(unit,
-              'test("repeat-local text and interactive labels compile only to nearest lexical i/i_of expressions", () => {',
-              'test("repeat-local text, readout and interactive labels compile only to nearest lexical i/i_of expressions", () => {'
-          )
-          replace_once(unit,
-              '      { kind: "repeat_text", source: "index", prefix: "slot ", strong: true },\n      { kind: "meter", binding: "beacon", min: 0, max: 1, repeat_label: { source: "count", prefix: "meter of " } },',
-              '      { kind: "repeat_text", source: "index", prefix: "slot ", strong: true },\n      { kind: "readout", binding: "beacon", repeat_label: { source: "index", prefix: "readout " } },\n      { kind: "meter", binding: "beacon", min: 0, max: 1, repeat_label: { source: "count", prefix: "meter of " } },'
-          )
-          replace_once(unit,
-              '    { text: ["+", "slot ", ["var", "i"]], strong: true },\n    { meter: ["var", "beacon"], min: 0, max: 1, label: ["+", "meter of ", ["var", "i_of"]] },',
-              '    { text: ["+", "slot ", ["var", "i"]], strong: true },\n    { value: "beacon", label: ["+", "readout ", ["var", "i"]] },\n    { meter: ["var", "beacon"], min: 0, max: 1, label: ["+", "meter of ", ["var", "i_of"]] },'
-          )
-          replace_once(unit,
-              '    { kind: "repeat_text", source: "index", prefix: "slot " },\n    { kind: "action", binding: "toggle", repeat_label: { source: "index", prefix: "toggle " } }',
-              '    { kind: "repeat_text", source: "index", prefix: "slot " },\n    { kind: "readout", binding: "beacon", repeat_label: { source: "index", prefix: "readout " } },\n    { kind: "action", binding: "toggle", repeat_label: { source: "index", prefix: "toggle " } }'
-          )
-          replace_once(unit,
-              '    if (element.kind === "action") intent.bindings = { actions: ["toggle"] };',
-              '    if (element.kind === "readout") intent.bindings = { readouts: ["beacon"] };\n    if (element.kind === "action") intent.bindings = { actions: ["toggle"] };'
-          )
-          replace_once(unit,
-              '    { kind: "action", binding: "toggle", label: "static", repeat_label: { source: "index" } },\n    { kind: "action", binding: "toggle", repeat_label: { source: "index", expression: ["var", "i"] } }',
-              '    { kind: "readout", binding: "beacon", label: "static", repeat_label: { source: "index" } },\n    { kind: "action", binding: "toggle", label: "static", repeat_label: { source: "index" } },\n    { kind: "action", binding: "toggle", repeat_label: { source: "index", expression: ["var", "i"] } }'
-          )
+          replace_once(unit, 'test("repeat-local text and interactive labels compile only to nearest lexical i/i_of expressions", () => {', 'test("repeat-local text, readout and interactive labels compile only to nearest lexical i/i_of expressions", () => {')
+          replace_once(unit, '      { kind: "repeat_text", source: "index", prefix: "slot ", strong: true },\n      { kind: "meter", binding: "beacon", min: 0, max: 1, repeat_label: { source: "count", prefix: "meter of " } },', '      { kind: "repeat_text", source: "index", prefix: "slot ", strong: true },\n      { kind: "readout", binding: "beacon", repeat_label: { source: "index", prefix: "readout " } },\n      { kind: "meter", binding: "beacon", min: 0, max: 1, repeat_label: { source: "count", prefix: "meter of " } },')
+          replace_once(unit, '    { text: ["+", "slot ", ["var", "i"]], strong: true },\n    { meter: ["var", "beacon"], min: 0, max: 1, label: ["+", "meter of ", ["var", "i_of"]] },', '    { text: ["+", "slot ", ["var", "i"]], strong: true },\n    { value: "beacon", label: ["+", "readout ", ["var", "i"]] },\n    { meter: ["var", "beacon"], min: 0, max: 1, label: ["+", "meter of ", ["var", "i_of"]] },')
+          replace_once(unit, '    { kind: "repeat_text", source: "index", prefix: "slot " },\n    { kind: "action", binding: "toggle", repeat_label: { source: "index", prefix: "toggle " } }', '    { kind: "repeat_text", source: "index", prefix: "slot " },\n    { kind: "readout", binding: "beacon", repeat_label: { source: "index", prefix: "readout " } },\n    { kind: "action", binding: "toggle", repeat_label: { source: "index", prefix: "toggle " } }')
+          replace_once(unit, '    if (element.kind === "action") intent.bindings = { actions: ["toggle"] };', '    if (element.kind === "readout") intent.bindings = { readouts: ["beacon"] };\n    if (element.kind === "action") intent.bindings = { actions: ["toggle"] };')
+          replace_once(unit, '    { kind: "action", binding: "toggle", label: "static", repeat_label: { source: "index" } },\n    { kind: "action", binding: "toggle", repeat_label: { source: "index", expression: ["var", "i"] } }', '    { kind: "readout", binding: "beacon", label: "static", repeat_label: { source: "index" } },\n    { kind: "action", binding: "toggle", label: "static", repeat_label: { source: "index" } },\n    { kind: "action", binding: "toggle", repeat_label: { source: "index", expression: ["var", "i"] } }')
 
           integ = "test/repeat-local-presentation.integration.test.js"
-          replace_once(integ,
-              'goal: "Render repeat-local indices/counts in text and interactive labels while controls/actions remain bound to canonical tile authority",',
-              'goal: "Render repeat-local indices/counts in text, readout and interactive labels while readouts/controls/actions remain bound to canonical tile authority",'
-          )
-          replace_once(integ,
-              '          { kind: "repeat_text", source: "index", prefix: "slot " },\n          { kind: "meter", binding: "beacon", min: 0, max: 1, repeat_label: { source: "count", prefix: "meter of " } },',
-              '          { kind: "repeat_text", source: "index", prefix: "slot " },\n          { kind: "readout", binding: "beacon", repeat_label: { source: "index", prefix: "readout " } },\n          { kind: "meter", binding: "beacon", min: 0, max: 1, repeat_label: { source: "count", prefix: "meter of " } },'
-          )
-          replace_once(integ,
-              '    assert.match(onHtml, new RegExp(`slot ${i}`));\n    assert.match(onHtml, new RegExp(`toggle ${i}`));',
-              '    assert.match(onHtml, new RegExp(`slot ${i}`));\n    assert.match(onHtml, new RegExp(`readout ${i}`));\n    assert.match(onHtml, new RegExp(`toggle ${i}`));'
-          )
-          replace_once(integ,
-              '  assert.equal((onHtml.match(/meter of 4/g) || []).length, 4, "count should resolve from the nearest repeat scope for every repeated meter label");',
-              '  assert.equal((onHtml.match(/readout [0-3]/g) || []).length, 4, "every repeated readout label should resolve in lexical scope while reading the one canonical beacon variable");\n  assert.equal((onHtml.match(/meter of 4/g) || []).length, 4, "count should resolve from the nearest repeat scope for every repeated meter label");'
-          )
+          replace_once(integ, 'goal: "Render repeat-local indices/counts in text and interactive labels while controls/actions remain bound to canonical tile authority",', 'goal: "Render repeat-local indices/counts in text, readout and interactive labels while readouts/controls/actions remain bound to canonical tile authority",')
+          replace_once(integ, '          { kind: "repeat_text", source: "index", prefix: "slot " },\n          { kind: "meter", binding: "beacon", min: 0, max: 1, repeat_label: { source: "count", prefix: "meter of " } },', '          { kind: "repeat_text", source: "index", prefix: "slot " },\n          { kind: "readout", binding: "beacon", repeat_label: { source: "index", prefix: "readout " } },\n          { kind: "meter", binding: "beacon", min: 0, max: 1, repeat_label: { source: "count", prefix: "meter of " } },')
+          replace_once(integ, '    assert.match(onHtml, new RegExp(`slot ${i}`));\n    assert.match(onHtml, new RegExp(`toggle ${i}`));', '    assert.match(onHtml, new RegExp(`slot ${i}`));\n    assert.match(onHtml, new RegExp(`readout ${i}`));\n    assert.match(onHtml, new RegExp(`toggle ${i}`));')
+          replace_once(integ, '  assert.equal((onHtml.match(/meter of 4/g) || []).length, 4, "count should resolve from the nearest repeat scope for every repeated meter label");', '  assert.equal((onHtml.match(/readout [0-3]/g) || []).length, 4, "every repeated readout label should resolve in lexical scope while reading the one canonical beacon variable");\n  assert.equal((onHtml.match(/meter of 4/g) || []).length, 4, "count should resolve from the nearest repeat scope for every repeated meter label");')
 
-          replace_once("README.md",
-              'MorphTile core now also evaluates expression-backed text plus meter/button/control labels in the nearest repeat scope.',
-              'MorphTile core now also evaluates expression-backed text plus readout/meter/button/control labels in the nearest repeat scope.'
-          )
-          replace_once("README.md",
-              'A `meter`, `action`, or `control` inside a repeat may use `repeat_label: { source: "index"|"count", prefix?, suffix? }` instead of a static `label`.',
-              'A `readout`, `meter`, `action`, or `control` inside a repeat may use `repeat_label: { source: "index"|"count", prefix?, suffix? }` instead of a static `label`.'
-          )
-          replace_once("README.md",
-              '`readout` labels are intentionally not widened because the pinned core primitive does not establish lexical evaluation for that label path.',
-              'For `readout`, the lexical descriptor decorates only the label; its `binding` remains the same canonical target-owned readout variable.'
-          )
-          replace_once("README.md",
-              'bounded nearest-repeat lexical text and meter/button/control labels,',
-              'bounded nearest-repeat lexical text and readout/meter/button/control labels,'
-          )
-          replace_once("README.md",
-              'exact MorphTile v0.4 snapshot `34eddb9df6450a7da0da20dd596fd2b388bbb788`.',
-              'exact MorphTile v0.4 snapshot `685df074701feeae3e9d789e532d0a3658030bf4`.'
-          )
+          replace_once("README.md", 'MorphTile core now also evaluates expression-backed text plus meter/button/control labels in the nearest repeat scope.', 'MorphTile core now also evaluates expression-backed text plus readout/meter/button/control labels in the nearest repeat scope.')
+          replace_once("README.md", 'A `meter`, `action`, or `control` inside a repeat may use `repeat_label: { source: "index"|"count", prefix?, suffix? }` instead of a static `label`.', 'A `readout`, `meter`, `action`, or `control` inside a repeat may use `repeat_label: { source: "index"|"count", prefix?, suffix? }` instead of a static `label`.')
+          replace_once("README.md", '`readout` labels are intentionally not widened because the pinned core primitive does not establish lexical evaluation for that label path.', 'For `readout`, the lexical descriptor decorates only the label; its `binding` remains the same canonical target-owned readout variable.')
+          replace_once("README.md", 'bounded nearest-repeat lexical text and meter/button/control labels,', 'bounded nearest-repeat lexical text and readout/meter/button/control labels,')
+          replace_once("README.md", 'exact MorphTile v0.4 snapshot `34eddb9df6450a7da0da20dd596fd2b388bbb788`.', 'exact MorphTile v0.4 snapshot `685df074701feeae3e9d789e532d0a3658030bf4`.')
 
           replace_once("STATUS.md", '- Machine version: 0.5.15', '- Machine version: 0.5.16')
-          replace_once("STATUS.md",
-              '- MorphTile target: v0.4 at `34eddb9df6450a7da0da20dd596fd2b388bbb788`',
-              '- MorphTile target: v0.4 at `685df074701feeae3e9d789e532d0a3658030bf4`'
-          )
+          replace_once("STATUS.md", '- MorphTile target: v0.4 at `34eddb9df6450a7da0da20dd596fd2b388bbb788`', '- MorphTile target: v0.4 at `685df074701feeae3e9d789e532d0a3658030bf4`')
           replace_once("STATUS.md", 'Interface 0.5.15 consumes the now-integrated MorphTile lexical presentation primitive', 'Interface 0.5.16 consumes the now-integrated MorphTile lexical presentation primitive')
           replace_once("STATUS.md", 'Meter/button/control nodes may use the same bounded descriptor through `repeat_label`.', 'Readout/meter/button/control nodes may use the same bounded descriptor through `repeat_label`.')
-          replace_once("STATUS.md",
-              'MorphTile core PR #17 is integrated in core main `34eddb9df6450a7da0da20dd596fd2b388bbb788`. Core now propagates lexical repeat scope into expression-backed view text and meter/button/control labels.',
-              'MorphTile core PRs #17 and #19 are integrated in core main `685df074701feeae3e9d789e532d0a3658030bf4`. Core now propagates lexical repeat scope into expression-backed view text and readout/meter/button/control labels.'
-          )
+          replace_once("STATUS.md", 'MorphTile core PR #17 is integrated in core main `34eddb9df6450a7da0da20dd596fd2b388bbb788`. Core now propagates lexical repeat scope into expression-backed view text and meter/button/control labels.', 'MorphTile core PRs #17 and #19 are integrated in core main `685df074701feeae3e9d789e532d0a3658030bf4`. Core now propagates lexical repeat scope into expression-backed view text and readout/meter/button/control labels.')
 
-          replace_once("ROADMAP.md",
-              '- [x] Expose bounded repeat-local labels for meter/button/control nodes using the same nearest-repeat lexical scope while keeping action/control authority on the target tile.',
-              '- [x] Expose bounded repeat-local labels for meter/button/control nodes using the same nearest-repeat lexical scope while keeping action/control authority on the target tile.\n- [x] Extend bounded repeat-local labels to readout nodes after MorphTile Core #19 integrated that universal lexical-label path, while keeping the readout bound to one canonical target variable.'
-          )
+          replace_once("ROADMAP.md", '- [x] Expose bounded repeat-local labels for meter/button/control nodes using the same nearest-repeat lexical scope while keeping action/control authority on the target tile.', '- [x] Expose bounded repeat-local labels for meter/button/control nodes using the same nearest-repeat lexical scope while keeping action/control authority on the target tile.\n- [x] Extend bounded repeat-local labels to readout nodes after MorphTile Core #19 integrated that universal lexical-label path, while keeping the readout bound to one canonical target variable.')
           PY
       - name: Unit proof
         run: npm test
         working-directory: machine
+      - name: Record failed unit evidence
+        if: failure()
+        working-directory: machine
+        shell: bash
+        run: |
+          npm test > preflight-failure.txt 2>&1 || true
+          git config user.name "interface-machine-specialist"
+          git config user.email "interface-machine@users.noreply.github.com"
+          git add preflight-failure.txt
+          git commit -m "Record readout preflight failure evidence"
+          git push origin HEAD:codex/repeat-readout-label-v1
       - name: Exact Core integration proof
         run: npm run test:integration
         working-directory: machine
@@ -154,6 +99,7 @@ jobs:
         run: |
           git diff --check
           git rm .github/workflows/readout-repeat-label-preflight.yml
+          git rm -f preflight-failure.txt 2>/dev/null || true
           git status --short
           git config user.name "interface-machine-specialist"
           git config user.email "interface-machine@users.noreply.github.com"
