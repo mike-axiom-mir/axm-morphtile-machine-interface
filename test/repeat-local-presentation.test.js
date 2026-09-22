@@ -87,19 +87,22 @@ test("repeat-local descriptors are closed and static labels cannot be mixed with
 });
 
 test("nested repeat-local rendering follows the nearest repeat scope", () => {
+  const nested = repeat([{
+    kind: "repeat",
+    binding: "beacon",
+    step: 0.5,
+    max: 2,
+    children: [
+      { kind: "repeat_text", source: "index", prefix: "inner " },
+      { kind: "control", binding: "levels", repeat_label: { source: "count", prefix: "inner count " } }
+    ]
+  }]);
+  nested.bindings = { readouts: ["beacon"], controls: ["levels"] };
+
   const out = run({
     ...base,
     request_id: "repeat-local-presentation-nested",
-    intent: repeat([{
-      kind: "repeat",
-      binding: "beacon",
-      step: 0.5,
-      max: 2,
-      children: [
-        { kind: "repeat_text", source: "index", prefix: "inner " },
-        { kind: "control", binding: "levels", repeat_label: { source: "count", prefix: "inner count " } }
-      ]
-    }])
+    intent: nested
   });
 
   assert.equal(out.status, "CANDIDATE");
