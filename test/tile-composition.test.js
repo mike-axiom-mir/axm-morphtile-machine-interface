@@ -43,6 +43,16 @@ test("tile element compiles one bounded same-container tile reference without pa
   }]);
 });
 
+test("nested owners must use an explicit same-root tile_path instead of an ambiguous bare tile_id", () => {
+  const out = run(request("nested-bare-tile-scope", {
+    tile_path: "mt_shell/mt_panel",
+    elements: [{ kind: "tile", tile_id: "mt_tower" }]
+  }));
+
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INTERFACE_TILE_SCOPE");
+});
+
 test("tile element stays bounded to a local tile id rather than inventing cross-container addressing", () => {
   for (const tileId of ["", "mt_shell/mt_inner", "/mt_core", "mt core"]) {
     const out = run(request("tile-invalid-" + String(tileId), {
