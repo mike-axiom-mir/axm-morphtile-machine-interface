@@ -6,7 +6,7 @@ Tested contract target:
 - commit: 685df074701feeae3e9d789e532d0a3658030bf4
 - format: v0.4
 - provisional envelope: v0.1
-- machine version: 0.5.16
+- machine version: 0.5.17
 
 Without placement, the adapter emits `morphtile.view-operation/v0.5`.
 

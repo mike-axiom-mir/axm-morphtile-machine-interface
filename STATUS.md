@@ -1,6 +1,6 @@
 # Status
 
-- Machine version: 0.5.16
+- Machine version: 0.5.17
 - State: PINNED CORE + RECEIVER + CLAIM-IDENTIFIED INTEGRATION EVIDENCE
 - Local tests: `npm test`
 - MorphTile target: v0.4 at `685df074701feeae3e9d789e532d0a3658030bf4`
@@ -16,7 +16,7 @@ Subsequent integrated evidence work proved all seven supported host presentation
 
 The machine includes bounded canonical-state readouts, meters, truthy/threshold/equality conditions and repeat generation; bounded nearest-repeat lexical selectors and presentation; tile-owned local and exact same-root composition; native accent/width/strong styling; mode-owned placement descriptors; safe action/control bindings; source-tree/depth/expanded-repeat budgets; and exact receiver/core pinning.
 
-Interface 0.5.16 consumes the now-integrated MorphTile lexical presentation primitive rather than duplicating it. `repeat_text` may render the nearest repeat `index` or `count` with optional static prefix/suffix. Readout/meter/button/control nodes may use the same bounded descriptor through `repeat_label`. The producer compiles those descriptors only to MorphTile-native expressions over lexical `i` / `i_of`; it does not expose general expression authoring, create canonical repeat-local state, or widen the target action/parameter authority decorated by the label.
+Interface 0.5.17 consumes the now-integrated MorphTile lexical presentation primitive rather than duplicating it. `repeat_text` may render the nearest repeat `index` or `count` with optional static prefix/suffix. Readout/meter/button/control nodes may use the same bounded descriptor through `repeat_label`. The producer compiles those descriptors only to MorphTile-native expressions over lexical `i` / `i_of`; it does not expose general expression authoring, create canonical repeat-local state, or widen the target action/parameter authority decorated by the label.
 
 ## Current receiver evidence
 
@@ -54,6 +54,7 @@ No new core primitive is required for this lane. Presentation z-order/layer auth
 - Persistent repository truth should describe evidence/capability state rather than PR lifecycle; exact candidate/merge status belongs in the PR and handoff.
 - Executable proof identity, dependency identity and semantic claim identity are separate evidence layers.
 - Multiple interface surfaces may share one symbolic target capability without multiplying canonical state or authority; view multiplicity and state multiplicity are different things.
+- Binding declaration arrays are proof vocabularies, not multisets: declare each symbolic capability once; duplicate declarations HOLD instead of being silently deduplicated.
 
 ## HELD / not claimed
 
