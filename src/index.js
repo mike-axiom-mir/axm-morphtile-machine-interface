@@ -69,6 +69,17 @@ function requestedBindings(intent) {
   return requested;
 }
 
+function containsBareTileReference(elements) {
+  const contains = (element) => {
+    if (element.kind === "tile") return element.tile_id !== undefined;
+    if (element.kind === "row" || element.kind === "group" || element.kind === "when" || element.kind === "repeat" || element.kind === "repeat_when") {
+      return element.children.some(contains);
+    }
+    return false;
+  };
+  return (elements || []).some(contains);
+}
+
 function targetProofDependencies(intent, placement) {
   const requested = requestedBindings(intent);
   const dependencies = [{
@@ -213,6 +224,15 @@ function run(request) {
   }
 
   if (!intent.tile_path) return result(request, MACHINE, "HOLD", { holds: [{ code: "HOLD_TILE_PATH_REQUIRED" }] });
+
+  if (intent.tile_path.includes("/") && containsBareTileReference(intent.elements)) {
+    return result(request, MACHINE, "HOLD", {
+      holds: [{
+        code: "HOLD_INTERFACE_TILE_SCOPE",
+        detail: "nested interface targets must compose tiles through explicit same-root tile_path references; MorphTile bare tile ids may fall back outside the owner's container when no local tile matches"
+      }]
+    });
+  }
 
   const bindings = validateBindings(intent);
   if (!bindings.ok) {
