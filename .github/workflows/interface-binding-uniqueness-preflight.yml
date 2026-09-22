@@ -6,7 +6,7 @@ on:
       - specialist/binding-declaration-uniqueness-v1
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   patch-and-prove:
@@ -18,43 +18,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Stop diagnostic recursion
-        run: |
-          if [ -f .github/preflight-failure.log ]; then
-            echo 'diagnostic already persisted for specialist inspection'
-            exit 1
-          fi
       - name: Apply bounded repair with preserved prepatch evidence
         run: node .github/interface-binding-uniqueness-preflight.js
-      - name: Prove exact unit behavior or persist diagnostic
+      - name: Run exact unit suite
+        id: unit
+        continue-on-error: true
         run: |
-          set +e
-          npm test > /tmp/interface-preflight.log 2>&1
-          status=$?
-          set -e
-          if [ "$status" -ne 0 ]; then
-            cp /tmp/interface-preflight.log .github/preflight-failure.log
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add .github/preflight-failure.log
-            git commit -m 'ci: preserve binding preflight failure detail'
-            git push origin HEAD:specialist/binding-declaration-uniqueness-v1
-            exit "$status"
-          fi
-          cat /tmp/interface-preflight.log
+          set -o pipefail
+          npm test 2>&1 | tee interface-preflight.log
+      - name: Upload preflight log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: binding-preflight-test-log
+          path: interface-preflight.log
+      - name: Require exact unit green
+        run: |
+          test "${{ steps.unit.outcome }}" = "success"
           git diff --check
           node -e "const f=require('./fixtures/request.counter-view.json'); const m=require('./src'); const r=JSON.parse(JSON.stringify(f)); r.request_id='postpatch-duplicate-action-binding'; r.intent.bindings.actions.push('increment'); const o=m.run(r); if(m.MACHINE.version!=='0.5.17'||o.status!=='HOLD'||o.holds?.[0]?.code!=='HOLD_INVALID_INTERFACE_BINDING') process.exit(1); console.log('POSTPATCH_EVIDENCE duplicate declaration fails closed');"
-      - name: Commit only the proven net repair
-        run: |
-          rm .github/workflows/interface-binding-uniqueness-preflight.yml
-          rm .github/interface-binding-uniqueness-preflight.js
-          rm -f .github/preflight-failure.log
-          git diff --check
-          echo NET_DIFF
-          git diff --stat
-          git status --short
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m 'interface: reject duplicate binding declarations'
-          git push origin HEAD:specialist/binding-declaration-uniqueness-v1
