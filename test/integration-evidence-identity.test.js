@@ -4,6 +4,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const machine = require("../machine.json");
 const sources = require("../fixtures/integration-sources.json");
 
 const root = path.resolve(__dirname, "..");
@@ -76,5 +77,35 @@ test("receiver evidence wording stays pinned rather than pretending to follow As
     status,
     /Assembly receiver evidence currently targets integrated main/i,
     "a reproducible receiver pin must not be worded as a floating claim about the latest Assembly main"
+  );
+});
+
+test("INTEGRATION.md current contract identity matches executable machine and receiver pins", () => {
+  const integration = read("INTEGRATION.md");
+  const contractLines = lines(integration);
+
+  assert.ok(
+    contractLines.includes(`- repository: ${machine.tested_against.repository}`),
+    "INTEGRATION.md must name the repository from machine.json tested_against"
+  );
+  assert.ok(
+    contractLines.includes(`- commit: ${machine.tested_against.commit}`),
+    "INTEGRATION.md must name the exact MorphTile commit from machine.json tested_against"
+  );
+  assert.ok(
+    contractLines.includes(`- format: ${machine.tested_against.format}`),
+    "INTEGRATION.md must name the exact MorphTile format from machine.json tested_against"
+  );
+  assert.ok(
+    contractLines.includes(`- provisional envelope: v${machine.envelope}`),
+    "INTEGRATION.md must name the machine envelope version"
+  );
+  assert.ok(
+    contractLines.includes(`- machine version: ${machine.version}`),
+    "INTEGRATION.md must name the current machine version"
+  );
+  assert.ok(
+    integration.includes(`Assembly receiver compatibility is separately pinned to \`${sources.assembly.commit}\` in CI.`),
+    "INTEGRATION.md must name the exact Assembly receiver identity exercised by CI"
   );
 });
