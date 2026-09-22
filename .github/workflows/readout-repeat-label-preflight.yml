@@ -44,6 +44,9 @@ jobs:
           replace_once("package.json", '"version":"0.5.15"', '"version":"0.5.16"')
           replace_once("machine.json", '"version":"0.5.15"', '"version":"0.5.16"')
           replace_once("machine.json", '"commit":"34eddb9df6450a7da0da20dd596fd2b388bbb788"', '"commit":"685df074701feeae3e9d789e532d0a3658030bf4"')
+          replace_once("test/interface-intent.test.js", 'assert.equal(MACHINE.version, "0.5.15");', 'assert.equal(MACHINE.version, "0.5.16");')
+          replace_once("test/nested-layout.test.js", 'assert.equal(out.machine.version, "0.5.15");', 'assert.equal(out.machine.version, "0.5.16");')
+          replace_once("test/ordered-elements.test.js", 'assert.equal(out.machine.version, "0.5.15");', 'assert.equal(out.machine.version, "0.5.16");')
 
           unit = "test/repeat-local-presentation.test.js"
           replace_once(unit, 'test("repeat-local text and interactive labels compile only to nearest lexical i/i_of expressions", () => {', 'test("repeat-local text, readout and interactive labels compile only to nearest lexical i/i_of expressions", () => {')
@@ -82,6 +85,9 @@ jobs:
         shell: bash
         run: |
           npm test > preflight-failure.txt 2>&1 || true
+          if git diff --quiet -- preflight-failure.txt; then
+            exit 0
+          fi
           git config user.name "interface-machine-specialist"
           git config user.email "interface-machine@users.noreply.github.com"
           git add preflight-failure.txt
@@ -103,7 +109,7 @@ jobs:
           git status --short
           git config user.name "interface-machine-specialist"
           git config user.email "interface-machine@users.noreply.github.com"
-          git add src/interface-intent.js src/index.js package.json machine.json test/repeat-local-presentation.test.js test/repeat-local-presentation.integration.test.js README.md STATUS.md ROADMAP.md
+          git add src/interface-intent.js src/index.js package.json machine.json test/repeat-local-presentation.test.js test/repeat-local-presentation.integration.test.js test/interface-intent.test.js test/nested-layout.test.js test/ordered-elements.test.js README.md STATUS.md ROADMAP.md
           git diff --cached --check
           git commit -m "Expose repeat-local readout labels"
           git push origin HEAD:codex/repeat-readout-label-v1
