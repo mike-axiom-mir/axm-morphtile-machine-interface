@@ -30,7 +30,7 @@ const LEGACY_CONTENT_FIELDS = Object.freeze([
 const ELEMENT_FIELDS = Object.freeze({
   text: Object.freeze(["kind", "text", "strong"]),
   repeat_text: Object.freeze(["kind", "source", "prefix", "suffix", "strong"]),
-  readout: Object.freeze(["kind", "binding", "label"]),
+  readout: Object.freeze(["kind", "binding", "label", "repeat_label"]),
   meter: Object.freeze(["kind", "binding", "min", "max", "label", "repeat_label"]),
   control: Object.freeze(["kind", "binding", "label", "repeat_label"]),
   action: Object.freeze(["kind", "binding", "label", "repeat_label"]),

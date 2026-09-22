@@ -1,9 +1,9 @@
 # Status
 
-- Machine version: 0.5.15
+- Machine version: 0.5.16
 - State: PINNED CORE + RECEIVER + CLAIM-IDENTIFIED INTEGRATION EVIDENCE
 - Local tests: `npm test`
-- MorphTile target: v0.4 at `34eddb9df6450a7da0da20dd596fd2b388bbb788`
+- MorphTile target: v0.4 at `685df074701feeae3e9d789e532d0a3658030bf4`
 - Assembly receiver evidence target: `03206629321a023c046c7ee900a926bb6698f154`
 - Envelope: provisional v0.1
 - Visual proof: runtime vnode/HTML behavior only; aesthetic host quality remains NOT_TESTED
@@ -16,7 +16,7 @@ Subsequent integrated evidence work proved all seven supported host presentation
 
 The machine includes bounded canonical-state readouts, meters, truthy/threshold/equality conditions and repeat generation; bounded nearest-repeat lexical selectors and presentation; tile-owned local and exact same-root composition; native accent/width/strong styling; mode-owned placement descriptors; safe action/control bindings; source-tree/depth/expanded-repeat budgets; and exact receiver/core pinning.
 
-Interface 0.5.15 consumes the now-integrated MorphTile lexical presentation primitive rather than duplicating it. `repeat_text` may render the nearest repeat `index` or `count` with optional static prefix/suffix. Meter/button/control nodes may use the same bounded descriptor through `repeat_label`. The producer compiles those descriptors only to MorphTile-native expressions over lexical `i` / `i_of`; it does not expose general expression authoring, create canonical repeat-local state, or widen the target action/parameter authority decorated by the label.
+Interface 0.5.16 consumes the now-integrated MorphTile lexical presentation primitive rather than duplicating it. `repeat_text` may render the nearest repeat `index` or `count` with optional static prefix/suffix. Readout/meter/button/control nodes may use the same bounded descriptor through `repeat_label`. The producer compiles those descriptors only to MorphTile-native expressions over lexical `i` / `i_of`; it does not expose general expression authoring, create canonical repeat-local state, or widen the target action/parameter authority decorated by the label.
 
 ## Current receiver evidence
 
@@ -34,7 +34,7 @@ The claim registry includes action input authority, Assembly dependency folding 
 
 ## Current substrate placement
 
-MorphTile core PR #17 is integrated in core main `34eddb9df6450a7da0da20dd596fd2b388bbb788`. Core now propagates lexical repeat scope into expression-backed view text and meter/button/control labels. Interface therefore consumes that public runtime behavior through a closed `repeat_text` / `repeat_label` vocabulary rather than copying repeat locals or implementing a private evaluator.
+MorphTile core PRs #17 and #19 are integrated in core main `685df074701feeae3e9d789e532d0a3658030bf4`. Core now propagates lexical repeat scope into expression-backed view text and readout/meter/button/control labels. Interface therefore consumes that public runtime behavior through a closed `repeat_text` / `repeat_label` vocabulary rather than copying repeat locals or implementing a private evaluator.
 
 No new core primitive is required for this lane. Presentation z-order/layer authoring remains held because current MorphTile core has no evidenced canonical z-order primitive/schema. Cross-root/cross-container tile composition remains held behind a separate authority/proof contract; same-root paths do not imply bridge permission.
 

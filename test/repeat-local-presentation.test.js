@@ -25,11 +25,12 @@ function repeat(children, max = 4) {
   };
 }
 
-test("repeat-local text and interactive labels compile only to nearest lexical i/i_of expressions", () => {
+test("repeat-local text, readout and interactive labels compile only to nearest lexical i/i_of expressions", () => {
   const out = run({
     ...base,
     intent: repeat([
       { kind: "repeat_text", source: "index", prefix: "slot ", strong: true },
+      { kind: "readout", binding: "beacon", repeat_label: { source: "index", prefix: "readout " } },
       { kind: "meter", binding: "beacon", min: 0, max: 1, repeat_label: { source: "count", prefix: "meter of " } },
       { kind: "action", binding: "toggle", repeat_label: { source: "index", prefix: "toggle ", suffix: "!" } },
       { kind: "control", binding: "levels", repeat_label: { source: "index", prefix: "level " } }
@@ -40,6 +41,7 @@ test("repeat-local text and interactive labels compile only to nearest lexical i
   const body = out.candidate.operation.view.body[0].body;
   assert.deepEqual(body, [
     { text: ["+", "slot ", ["var", "i"]], strong: true },
+    { value: "beacon", label: ["+", "readout ", ["var", "i"]] },
     { meter: ["var", "beacon"], min: 0, max: 1, label: ["+", "meter of ", ["var", "i_of"]] },
     { button: "toggle", label: ["+", ["+", "toggle ", ["var", "i"]], "!"] },
     { control: "levels", label: ["+", "level ", ["var", "i"]] }
@@ -56,9 +58,11 @@ test("repeat-local text and interactive labels compile only to nearest lexical i
 test("repeat-local presentation HOLDs outside a lexical repeat", () => {
   for (const element of [
     { kind: "repeat_text", source: "index", prefix: "slot " },
+    { kind: "readout", binding: "beacon", repeat_label: { source: "index", prefix: "readout " } },
     { kind: "action", binding: "toggle", repeat_label: { source: "index", prefix: "toggle " } }
   ]) {
     const intent = { tile_path: "mt_tower", elements: [element] };
+    if (element.kind === "readout") intent.bindings = { readouts: ["beacon"] };
     if (element.kind === "action") intent.bindings = { actions: ["toggle"] };
     const out = run({
       ...base,
@@ -75,6 +79,7 @@ test("repeat-local descriptors are closed and static labels cannot be mixed with
   for (const child of [
     { kind: "repeat_text", source: "position" },
     { kind: "repeat_text", source: "index", prefix: 1 },
+    { kind: "readout", binding: "beacon", label: "static", repeat_label: { source: "index" } },
     { kind: "action", binding: "toggle", label: "static", repeat_label: { source: "index" } },
     { kind: "action", binding: "toggle", repeat_label: { source: "index", expression: ["var", "i"] } }
   ]) {
