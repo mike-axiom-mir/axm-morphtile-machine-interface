@@ -42,8 +42,8 @@ replaceOnce(
 replaceOnce("machine.json", '"version":"0.5.16"', '"version":"0.5.17"');
 replaceOnce("package.json", '"version":"0.5.16"', '"version":"0.5.17"');
 replaceOnce("test/interface-intent.test.js", 'assert.equal(MACHINE.version, "0.5.16");', 'assert.equal(MACHINE.version, "0.5.17");');
-replaceOnce("test/nested-layout.test.js", 'assert.equal(MACHINE.version, "0.5.16");', 'assert.equal(MACHINE.version, "0.5.17");');
-replaceOnce("test/ordered-elements.test.js", 'assert.equal(MACHINE.version, "0.5.16");', 'assert.equal(MACHINE.version, "0.5.17");');
+replaceOnce("test/nested-layout.test.js", 'assert.equal(out.machine.version, "0.5.16");', 'assert.equal(out.machine.version, "0.5.17");');
+replaceOnce("test/ordered-elements.test.js", 'assert.equal(out.machine.version, "0.5.16");', 'assert.equal(out.machine.version, "0.5.17");');
 replaceOnce("INTEGRATION.md", "- machine version: 0.5.16", "- machine version: 0.5.17");
 replaceOnce("STATUS.md", "- Machine version: 0.5.16", "- Machine version: 0.5.17");
 replaceOnce("STATUS.md", "Interface 0.5.16 consumes the now-integrated MorphTile lexical presentation primitive", "Interface 0.5.17 consumes the now-integrated MorphTile lexical presentation primitive");
