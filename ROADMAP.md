@@ -19,6 +19,7 @@
 - [x] Re-pin the receiver proof to integrated Assembly `03206629321a023c046c7ee900a926bb6698f154` and require the exact receiver lane to stay green before claiming compatibility.
 - [x] Expose bounded direct repeat-local presentation through `repeat_text` after MorphTile core integrated lexical repeat scope into expression-backed text.
 - [x] Expose bounded repeat-local labels for meter/button/control nodes using the same nearest-repeat lexical scope while keeping action/control authority on the target tile.
+- [x] Extend bounded repeat-local labels to readout nodes after MorphTile Core #19 integrated that universal lexical-label path, while keeping the readout bound to one canonical target variable.
 - [ ] Define a separate proof/authority contract before any cross-root tile composition is exposed; do not infer cross-root authority from same-root paths.
 - [x] Add pinned host-side structural vnode/HTML evidence for every Interface-supported presentation mode, including receiver-owned dock defaults and session-only user adjustments, while keeping aesthetic quality NOT_TESTED and host/session state non-canonical.
 - [x] Give every registered integration proof one unique stable semantic claim identity in addition to its executable path and dependency identities, and make the registry validator fail closed on missing, malformed or duplicate claims.

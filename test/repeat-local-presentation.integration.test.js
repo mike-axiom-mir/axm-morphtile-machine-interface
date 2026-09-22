@@ -22,7 +22,7 @@ test("repeat-local Interface presentation renders through MorphTile lexical scop
   const out = run({
     envelope_version: "0.1",
     request_id: "repeat-local-presentation-runtime",
-    goal: "Render repeat-local indices/counts in text and interactive labels while controls/actions remain bound to canonical tile authority",
+    goal: "Render repeat-local indices/counts in text, readout and interactive labels while readouts/controls/actions remain bound to canonical tile authority",
     intent: {
       tile_path: "mt_tower",
       title: "Repeated tower controls",
@@ -33,6 +33,7 @@ test("repeat-local Interface presentation renders through MorphTile lexical scop
         max: 4,
         children: [
           { kind: "repeat_text", source: "index", prefix: "slot " },
+          { kind: "readout", binding: "beacon", repeat_label: { source: "index", prefix: "readout " } },
           { kind: "meter", binding: "beacon", min: 0, max: 1, repeat_label: { source: "count", prefix: "meter of " } },
           { kind: "action", binding: "toggle", repeat_label: { source: "index", prefix: "toggle " } },
           { kind: "control", binding: "levels", repeat_label: { source: "index", prefix: "level " } }
@@ -68,9 +69,11 @@ test("repeat-local Interface presentation renders through MorphTile lexical scop
 
   for (let i = 0; i < 4; i++) {
     assert.match(onHtml, new RegExp(`slot ${i}`));
+    assert.match(onHtml, new RegExp(`readout ${i}`));
     assert.match(onHtml, new RegExp(`toggle ${i}`));
     assert.match(onHtml, new RegExp(`level ${i}`));
   }
+  assert.equal((onHtml.match(/readout [0-3]/g) || []).length, 4, "every repeated readout label should resolve in lexical scope while reading the one canonical beacon variable");
   assert.equal((onHtml.match(/meter of 4/g) || []).length, 4, "count should resolve from the nearest repeat scope for every repeated meter label");
   assert.equal((onHtml.match(/data-signal="mt_tower:toggle"/g) || []).length, 4, "repeated labels must not widen or copy signal authority");
   assert.equal((onHtml.match(/data-param="mt_tower:levels"/g) || []).length, 4, "repeated labels must remain views over the one canonical parameter authority");
