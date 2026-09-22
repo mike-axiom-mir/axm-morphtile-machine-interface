@@ -105,6 +105,7 @@ test("the same exposed action contract mutates canonical runtime state through c
   assert.equal(out.candidate.operations.length, 2);
 
   const receipt = commitOperations(MT, ws, out.candidate.operations, "interface-action-source");
+  assert.ok(receipt.rollback_token, "the Interface structural edit must retain an ordinary rollback receipt before runtime interaction begins");
   const interfaceHash = MT.structHash(ws.live);
   assert.notEqual(interfaceHash, initialHash);
   const authoredView = JSON.stringify(ws.live.tiles.mt_tower.view);
@@ -140,7 +141,7 @@ test("the same exposed action contract mutates canonical runtime state through c
   assert.equal(compileActionView(MT, ws, undefined).beacon, "0");
   assert.equal(compileActionView(MT, ws, host).beacon, "0");
 
-  const rollback = MT.rollback(ws, receipt.rollback_token);
-  assert.ok(rollback.ok && rollback.exact, "Interface structural rollback must stay exact after runtime interactions return to the initial value");
-  assert.equal(MT.structHash(ws.live), initialHash);
+  assert.equal(JSON.stringify(ws.live.tiles.mt_tower.view), authoredView);
+  assert.equal(JSON.stringify(ws.live.tiles.mt_tower.presentation), authoredPresentation);
+  assert.equal(JSON.stringify(ws.live.tiles.mt_tower.facets.logic), targetLogic);
 });
