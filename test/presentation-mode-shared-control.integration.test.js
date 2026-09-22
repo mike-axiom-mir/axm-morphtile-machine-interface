@@ -120,7 +120,6 @@ test("one canonical control remains the same authority when the host changes pre
   assert.match(floatingHtml, /mt-p-floating/);
   assert.equal(occurrences(floatingHtml, 'data-param="mt_tower:levels"'), 1, "the alternate presentation must address the same canonical parameter exactly once");
   assert.match(floatingHtml, /Tower levels/);
-  assert.doesNotMatch(floatingHtml, /data-param="[^\"]*:levels"/g, "control authority must not be rebound to another tile");
 
   const rollback = MT.rollback(ws, committed.receipt.rollback_token);
   assert.ok(rollback.ok && rollback.exact);
