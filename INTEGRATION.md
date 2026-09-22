@@ -3,10 +3,10 @@
 Tested contract target:
 
 - repository: mike-axiom-mir/axm-morphtile
-- commit: 63a65c70bb702cb9ac979ec04233ffaa7ed5d179
+- commit: 685df074701feeae3e9d789e532d0a3658030bf4
 - format: v0.4
 - provisional envelope: v0.1
-- machine version: 0.5.3
+- machine version: 0.5.16
 
 Without placement, the adapter emits `morphtile.view-operation/v0.5`.
 
@@ -41,4 +41,4 @@ The machine never receives authority to copy canonical values or session placeme
 
 Current merged MorphTile core universally enforces custom-view action authority: only an existing `kind: "signal", dir: "in"` socket becomes actionable. Internal rule names, attach sockets, output sockets and absent names remain visible but inert even if a direct caller bypasses this machine.
 
-Assembly receiver compatibility is separately pinned to `08836233457d90b571063a8342434c572b87cd5e` in CI. Compatibility beyond the exact pinned revisions is not claimed until re-tested and re-pinned for a real semantic candidate.
+Assembly receiver compatibility is separately pinned to `03206629321a023c046c7ee900a926bb6698f154` in CI. Compatibility beyond the exact pinned revisions is not claimed until re-tested and re-pinned for a real semantic candidate.
