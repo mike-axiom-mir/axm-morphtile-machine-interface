@@ -1,0 +1,23 @@
+{
+  "schema": "axm.interface-integration-proofs/v0.1",
+  "proofs": [
+    { "path": "test/action-authority.integration.test.js", "dependencies": ["morphtile"] },
+    { "path": "test/assembly-dependency.integration.test.js", "dependencies": ["assembly", "morphtile"] },
+    { "path": "test/assembly-plan-coverage.integration.test.js", "dependencies": ["assembly", "morphtile"] },
+    { "path": "test/binding-namespace-authority.integration.test.js", "dependencies": ["assembly", "morphtile"] },
+    { "path": "test/conditional.integration.test.js", "dependencies": ["morphtile"] },
+    { "path": "test/equality-conditional.integration.test.js", "dependencies": ["morphtile"] },
+    { "path": "test/meter.integration.test.js", "dependencies": ["morphtile"] },
+    { "path": "test/morphtile.integration.test.js", "dependencies": ["morphtile"] },
+    { "path": "test/nested-path.integration.test.js", "dependencies": ["morphtile"] },
+    { "path": "test/presentation-holds.integration.test.js", "dependencies": ["morphtile"] },
+    { "path": "test/presentation-host.integration.test.js", "dependencies": ["morphtile"] },
+    { "path": "test/repeat-local-comparison.integration.test.js", "dependencies": ["morphtile"] },
+    { "path": "test/repeat-local-conditional.integration.test.js", "dependencies": ["morphtile"] },
+    { "path": "test/repeat.integration.test.js", "dependencies": ["morphtile"] },
+    { "path": "test/threshold-conditional.integration.test.js", "dependencies": ["morphtile"] },
+    { "path": "test/tile-composition.integration.test.js", "dependencies": ["morphtile"] },
+    { "path": "test/tile-path-composition.integration.test.js", "dependencies": ["morphtile"] },
+    { "path": "test/view-style.integration.test.js", "dependencies": ["morphtile"] }
+  ]
+}
