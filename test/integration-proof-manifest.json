@@ -25,6 +25,7 @@
     { "path": "test/tile-composition.integration.test.js", "claim": "local-tile-composition", "dependencies": ["morphtile"] },
     { "path": "test/tile-owned-interaction-composition.integration.test.js", "claim": "tile-owned-interaction-composition", "dependencies": ["morphtile"] },
     { "path": "test/tile-path-composition.integration.test.js", "claim": "same-root-path-composition", "dependencies": ["morphtile"] },
+    { "path": "test/tile-path-owned-interaction-composition.integration.test.js", "claim": "same-root-path-owned-interaction-composition", "dependencies": ["morphtile"] },
     { "path": "test/view-style.integration.test.js", "claim": "native-view-style", "dependencies": ["morphtile"] }
   ]
 }
