@@ -1,10 +1,10 @@
 # Status
 
-- Machine version: 0.5.14
-- State: PINNED RECEIVER + CLAIM-IDENTIFIED INTEGRATION EVIDENCE — runtime semantics unchanged
+- Machine version: 0.5.15
+- State: PINNED CORE + RECEIVER + CLAIM-IDENTIFIED INTEGRATION EVIDENCE
 - Local tests: `npm test`
-- MorphTile target: v0.4 at `2bdf8eade1376055473b9cc1b11734b72a5566e5`
-- Assembly receiver evidence target: `c45f8305196d149362045cef339ff1634f9095fe`
+- MorphTile target: v0.4 at `34eddb9df6450a7da0da20dd596fd2b388bbb788`
+- Assembly receiver evidence target: `03206629321a023c046c7ee900a926bb6698f154`
 - Envelope: provisional v0.1
 - Visual proof: runtime vnode/HTML behavior only; aesthetic host quality remains NOT_TESTED
 
@@ -12,31 +12,31 @@
 
 Interface 0.5.14 authored-null presentation integrity was independently verified and integrated by the Creation Director through PR #27. Follow-up receiver/truth work through PR #31 was independently verified and integrated. Interface PR #32 then added a real producer-generated root-local presentation specimen through Assembly folding, local proof discharge, MorphTile kit materialization, READY planning, and ordered receiver application; it was independently verified and integrated. Interface PR #33 extended that specimen through Assembly's installed receiver postcondition-closure proof. Interface PR #35 then converged receiver-evidence lifecycle truth. Interface PR #36 re-proved the same real producer specimen through Assembly's READY import-plan coverage and structured-container boundary and was independently verified and integrated.
 
-Subsequent integrated evidence work proved all seven supported host presentation modes and session-only user adjustment (#37), kept symbolic readout/control/action names in disjoint target authority namespaces (#38), replaced source/YAML inference with a structured executable integration-proof registry (#39), and proved that multiple authored controls remain multiple views over one target-owned canonical parameter rather than duplicate state (#40). Exact PR and merge identities remain historical receipts; persistent repository truth describes capabilities and evidence state rather than pretending a self-SHA is stable across future commits.
+Subsequent integrated evidence work proved all seven supported host presentation modes and session-only user adjustment (#37), kept symbolic readout/control/action names in disjoint target authority namespaces (#38), replaced source/YAML inference with a structured executable integration-proof registry (#39), proved that multiple authored controls remain multiple views over one target-owned canonical parameter rather than duplicate state (#40), proved presentation-anchor portability, canonical control/action write-through across presentations, tile-owned interaction authority under composition, and fail-closed nested composition scope through Interface #46. Exact PR and merge identities remain historical receipts; persistent repository truth describes capabilities and evidence state rather than pretending a self-SHA is stable across future commits.
 
-The integrated machine includes bounded canonical-state readouts, meters, truthy/threshold/equality conditions and repeat generation; tile-owned local and exact same-root composition; native accent/width/strong styling; mode-owned placement descriptors; safe action/control bindings; nearest-repeat lexical equality plus relational selectors; source-tree/depth/expanded-repeat budgets; and exact receiver/core pinning.
+The machine includes bounded canonical-state readouts, meters, truthy/threshold/equality conditions and repeat generation; bounded nearest-repeat lexical selectors and presentation; tile-owned local and exact same-root composition; native accent/width/strong styling; mode-owned placement descriptors; safe action/control bindings; source-tree/depth/expanded-repeat budgets; and exact receiver/core pinning.
 
-0.5.14 closes a producer source-integrity hole in optional presentation authorship. Explicit authored `null` fails closed for `dock`, `preferred_size`, `preferred_position`, `user_adjustable`, and `anchor`; genuine omission remains valid and preserves MorphTile-owned defaults. Explicit authored `false` and numeric zero remain real values where valid.
+Interface 0.5.15 consumes the now-integrated MorphTile lexical presentation primitive rather than duplicating it. `repeat_text` may render the nearest repeat `index` or `count` with optional static prefix/suffix. Meter/button/control nodes may use the same bounded descriptor through `repeat_label`. The producer compiles those descriptors only to MorphTile-native expressions over lexical `i` / `i_of`; it does not expose general expression authoring, create canonical repeat-local state, or widen the target action/parameter authority decorated by the label.
 
 ## Current receiver evidence
 
-Executable Interface receiver evidence is pinned to integrated Assembly `c45f8305196d149362045cef339ff1634f9095fe`. This is a reproducible evidence identity, not a floating claim that the pin follows the latest Assembly main. This receiver adds two bounded evidence/source-integrity layers relevant to ordinary Interface output: READY import plans must cover the declared kit before any operation is applied, and authored `view` / `presentation` containers must remain plain structured maps rather than being reinterpreted through host truthiness or wrong-container behavior.
+Executable Interface receiver evidence is pinned to integrated Assembly `03206629321a023c046c7ee900a926bb6698f154`. This is a reproducible evidence identity, not a floating claim that the pin follows the latest Assembly main. The receiver lane replays registered Interface-to-Assembly proofs through the exact pinned receiver and exact pinned MorphTile core.
 
-The integrated Interface proof reuses a real root-local Interface-authored specimen. The specimen preserves a plain authored view plus a docked presentation with genuine `dock` omission, numeric `[0, 0]`, and explicit `user_adjustable: false`; then it passes through Assembly folding, local target-proof discharge, MorphTile kit materialization, READY planning, import-plan coverage, ordered application, and installed-receiver closure.
+The Interface proof corpus reuses real Interface-authored specimens. Those specimens pass through Assembly folding, local target-proof discharge, MorphTile kit materialization, READY planning, import-plan coverage, ordered application, and installed-receiver closure while preserving the producer's plain structured `view` / `presentation` matter and source semantics.
 
-Regression-first head `a6e13b2bcc87a61fe489dd112413e189412126fa` deliberately retained predecessor Assembly `8a2a7bf6adf40266438945ad1482001be9d68900` while requiring `KIT_IMPORT_PLAN_COVERAGE`. Actions run `35643630860` left `unit` and `morphtile-integration` green and failed only `assembly-receiver-integration`; the existing five receiver tests passed and the new positive control failed because that predecessor emitted `KIT_APPLY` and `KIT_RECEIVER_CLOSURE` but no `KIT_IMPORT_PLAN_COVERAGE`. The repair repinned only the exact receiver evidence identity to current Assembly `c45f8305196d149362045cef339ff1634f9095fe` and retained the producer specimen unchanged. Independent Verification round 36 replayed this evidence successfully before Director integration.
+Historical receiver evidence established `KIT_IMPORT_PLAN_COVERAGE`, `KIT_APPLY`, and `KIT_RECEIVER_CLOSURE` as separate acceptance layers. Re-pinning does not erase those earlier receipts; the current exact receiver identity must pass the executable receiver lane before compatibility is claimed.
 
 ## Current integration evidence registry
 
 `test/integration-proof-manifest.json` is the executable registry for Interface integration proofs. Registry v0.2 gives every proof three distinct identities: an executable test path, the exact capable dependency lanes needed to run it, and one unique stable semantic claim id describing what the proof establishes. The validator fails closed on unregistered proof files, unknown/invalid dependency declarations, and absent, malformed or duplicate claim ids. Filenames, workflow comments, PR wording and source-token coincidence are not substitutes for those structured identities.
 
-The claim registry includes action input authority, Assembly dependency folding and import-plan coverage, disjoint binding namespaces, bounded canonical truthy/threshold/equality conditions, meters/readouts, basic commit/rollback, nested target paths, presentation HOLDs and host modes, repeat-local selectors, canonical repeat generation, shared canonical controls, repeated readout/control/action view multiplicity over one capability per authority namespace, local/same-root tile composition and native view styling. Claim identity records proof meaning only; it does not make a test CANON or widen runtime authority.
+The claim registry includes action input authority, Assembly dependency folding and import-plan coverage, disjoint binding namespaces, bounded canonical truthy/threshold/equality conditions, meters/readouts, basic commit/rollback, nested target paths, presentation HOLDs and host modes, repeat-local equality/relational selectors, repeat-local presentation, canonical repeat generation, shared canonical controls, repeated readout/control/action view multiplicity over one capability per authority namespace, local/same-root tile composition, tile-owned interaction composition and native view styling. Claim identity records proof meaning only; it does not make a test CANON or widen runtime authority.
 
-## Current substrate HOLD
+## Current substrate placement
 
-MorphTile core PR #17 is the canonical HOLD lane for repeat lexical scope in expression-backed view text and node labels. Native repeat establishes lexical `i` / `i_of`, and scoped `when` plus meter value evaluation consume that scope, while expression-backed text and meter/button/control labels still resolve through the outer label evaluator. Core PR #17 remains intentionally red at exact head `8e8dc095ffe9b4a81ed07e05203c8c5ca979dd56`: 195 tests, 193 pass, 2 expected failures.
+MorphTile core PR #17 is integrated in core main `34eddb9df6450a7da0da20dd596fd2b388bbb788`. Core now propagates lexical repeat scope into expression-backed view text and meter/button/control labels. Interface therefore consumes that public runtime behavior through a closed `repeat_text` / `repeat_label` vocabulary rather than copying repeat locals or implementing a private evaluator.
 
-Interface does not expose direct repeat-local value rendering until core genuinely consumes lexical scope and that core change is independently accepted. Presentation z-order/layer authoring also remains held because current MorphTile core has no evidenced canonical z-order primitive/schema.
+No new core primitive is required for this lane. Presentation z-order/layer authoring remains held because current MorphTile core has no evidenced canonical z-order primitive/schema. Cross-root/cross-container tile composition remains held behind a separate authority/proof contract; same-root paths do not imply bridge permission.
 
 ## Reusable rules learned
 
@@ -45,22 +45,18 @@ Interface does not expose direct repeat-local value rendering until core genuine
 - Lexical runtime locals are not canonical state and must not be promoted into target proof obligations or copied state.
 - A bounded producer may reuse a substrate evaluator only for semantics the substrate demonstrably consumes in the same lexical scope.
 - Extend an existing bounded vocabulary before exposing a general expression language.
-- Expression-backed node labels and the action/control they decorate are separate concerns: fixing label scope must never widen signal or parameter authority.
-- Receiver pins are evidence identities; compatibility must be re-earned against exact tested receiver heads whenever receiver semantics advance.
-- A receiver evidence pin is not a floating-main claim. If a downstream main moves only in evidence/CI machinery and no relevant receiver runtime semantics change, preserve the tested pin until compatibility is deliberately re-earned rather than silently retargeting it.
-- When a receiver changes from planning proof to application proof, a producer compatibility suite should send at least one real producer-generated specimen through the complete receiver path rather than merely update a SHA or inspect folded structure.
-- Execution success is not installed-state proof. When receiver semantics add postcondition closure, producer compatibility must require that closure evidence rather than inheriting confidence from `KIT_APPLY` alone.
-- A READY result is not proof that the returned plan still represents every declared kit item. Import-plan coverage, ordered application, and installed receiver closure are separate evidence layers and should remain separately asserted.
-- Receiver-side source-integrity hardening should be re-proven with valid producer matter; Interface should not duplicate the receiver's negative validator merely because the receiver became stricter.
-- Representation-sensitive values such as omission, `false`, and numeric zero must remain asserted on the producer specimen so stronger receiver proof does not erase source semantics.
-- Evidence lifecycle truth must converge with executable receiver identity: the current exact receiver proof cannot remain an unchecked roadmap item after that proof is established.
-- Persistent repository truth should describe evidence/capability state rather than PR lifecycle; exact candidate/merge status belongs in the PR and handoff so repository wording remains true across integration.
-- Executable proof identity, dependency identity and semantic claim identity are separate evidence layers. Every integration proof must carry one unique stable semantic claim id; a filename or CI lane says where/how evidence runs, not what it proves.
+- Expression-backed node labels and the action/control they decorate are separate concerns: label scope must never widen signal or parameter authority.
+- Repeat-local presentation descriptors must fail closed outside an actual nearest repeat; a label is not authority to synthesize a repeat scope.
+- Receiver pins are evidence identities; compatibility must be re-earned against exact tested receiver heads whenever the pin advances.
+- A receiver evidence pin is not a floating-main claim.
+- Execution success is not installed-state proof. Planning coverage, ordered application and installed receiver closure remain separate evidence layers.
+- Representation-sensitive values such as omission, `false`, and numeric zero must remain asserted on producer specimens so stronger receiver proof does not erase source semantics.
+- Persistent repository truth should describe evidence/capability state rather than PR lifecycle; exact candidate/merge status belongs in the PR and handoff.
+- Executable proof identity, dependency identity and semantic claim identity are separate evidence layers.
 - Multiple interface surfaces may share one symbolic target capability without multiplying canonical state or authority; view multiplicity and state multiplicity are different things.
 
 ## HELD / not claimed
 
-- direct repeat-local value rendering until MorphTile core PR #17 is truthfully repaired, independently verified and integrated;
 - arbitrary/compound expression authoring, state-to-state comparisons, repeat-local arithmetic, or object/array predicates;
 - presentation z-order/layer authoring without a canonical core primitive;
 - aesthetic host visual quality, arbitrary CSS/classes/raw style strings, arbitrary responsive/pixel layout, or ambient host permissions;
