@@ -65,7 +65,7 @@ jobs:
           repository: mike-axiom-mir/axm-morphtile
           ref: ${{ steps.pins.outputs.morphtile }}
           path: morphtile
-      - run: node --test test/assembly-dependency.integration.test.js test/assembly-plan-coverage.integration.test.js test/binding-namespace-authority.integration.test.js
+      - run: npm run test:integration:assembly
         working-directory: machine
         env:
           MORPHTILE_ASSEMBLY: ../assembly/src
