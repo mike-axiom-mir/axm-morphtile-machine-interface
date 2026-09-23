@@ -2,7 +2,7 @@
 
 const { assertRequest, result } = require("./envelope");
 const { InterfaceIntentError, TILE_PATH, normalizeInterfaceIntent } = require("./interface-intent");
-const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.18" };
+const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.19" };
 const PRESENTATION_MODES = new Set(["screen", "docked", "floating", "fullscreen", "embedded", "world", "tile"]);
 const DOCKS = new Set(["left", "right", "top", "bottom"]);
 const PRESENTATION_KEYS = new Set(["mode", "dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]);
@@ -59,11 +59,13 @@ function normalizeBindings(value) {
 function requestedBindings(intent) {
   const requested = { readouts: [], actions: [], controls: [] };
   if (intent.title_binding !== undefined) requested.readouts.push(intent.title_binding);
+  if (intent.text_binding !== undefined) requested.readouts.push(intent.text_binding);
   if (intent.readout !== undefined) requested.readouts.push(intent.readout);
   if (intent.action !== undefined) requested.actions.push(intent.action);
   if (intent.control !== undefined) requested.controls.push(intent.control);
   const collect = (element) => {
-    if (element.kind === "readout" || element.kind === "meter") requested.readouts.push(element.binding);
+    if (element.kind === "text" && element.text_binding !== undefined) requested.readouts.push(element.text_binding);
+    else if (element.kind === "readout" || element.kind === "meter") requested.readouts.push(element.binding);
     else if (element.kind === "when" || element.kind === "repeat") {
       requested.readouts.push(element.binding);
       for (const child of element.children) collect(child);
@@ -159,7 +161,7 @@ function elementLabel(element) {
 
 function nodeForElement(element) {
   if (element.kind === "text") {
-    const node = { text: element.text };
+    const node = { text: element.text_binding !== undefined ? ["var", element.text_binding] : element.text };
     if (element.strong !== undefined) node.strong = element.strong;
     return node;
   }
@@ -206,7 +208,8 @@ function buildView(intent) {
   if (intent.elements !== undefined) {
     for (const element of intent.elements) body.push(nodeForElement(element));
   } else {
-    if (intent.text !== undefined) body.push({ text: intent.text });
+    if (intent.text_binding !== undefined) body.push({ text: ["var", intent.text_binding] });
+    else if (intent.text !== undefined) body.push({ text: intent.text });
     if (intent.readout) body.push({ value: intent.readout, label: labelFor(intent, "readout_label", intent.readout) });
     if (intent.control) body.push({ control: intent.control, label: labelFor(intent, "control_label", intent.control) });
     if (intent.action) body.push({ button: intent.action, label: labelFor(intent, "action_label", intent.action) });
@@ -288,7 +291,7 @@ function run(request) {
       evidence: [{
         kind: "AUTHORITY",
         status: "PASS",
-        check: "candidate carries only validated authored interface text, bounded native view styling, bounded native local/same-root tile composition, nested canonical-state conditions/repeats, bounded nearest-repeat lexical selectors/rendering, declared symbolic bindings and mode-owned presentation descriptors; no copied canonical, lexical-local or session state; target-local and runtime-relevant anchor proof remain explicit dependencies"
+        check: "candidate carries only validated authored interface text/title bindings, bounded native view styling, bounded native local/same-root tile composition, nested canonical-state conditions/repeats, bounded nearest-repeat lexical selectors/rendering, declared symbolic bindings and mode-owned presentation descriptors; no copied canonical, lexical-local or session state; target-local and runtime-relevant anchor proof remain explicit dependencies"
       }],
       warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
     });
@@ -298,7 +301,7 @@ function run(request) {
   return result(request, MACHINE, "CANDIDATE", {
     candidate: { schema: "morphtile.view-operation/v0.5", operation: viewOperation },
     dependencies,
-    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains validated authored interface text plus bounded native view styling, bounded native local/same-root tile composition, nested canonical-state conditions/repeats, bounded nearest-repeat lexical selectors/rendering and declared symbolic bindings with no copied state or lexical-local values; target-local proof remains an explicit dependency" }],
+    evidence: [{ kind: "AUTHORITY", status: "PASS", check: "candidate contains validated authored interface text/title bindings plus bounded native view styling, bounded native local/same-root tile composition, nested canonical-state conditions/repeats, bounded nearest-repeat lexical selectors/rendering and declared symbolic bindings with no copied state or lexical-local values; target-local proof remains an explicit dependency" }],
     warnings: [{ code: "TARGET_MUST_EXIST_AND_DECLARE_UI_PANEL" }, { code: "CALLER_MUST_PROVE_BINDINGS_MATCH_TARGET" }]
   });
 }
