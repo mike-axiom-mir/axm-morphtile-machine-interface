@@ -9,6 +9,7 @@ const INTERFACE_INTENT_FIELDS = Object.freeze([
   "accent",
   "width",
   "text",
+  "text_binding",
   "readout",
   "readout_label",
   "control",
@@ -21,6 +22,7 @@ const INTERFACE_INTENT_FIELDS = Object.freeze([
 ]);
 const LEGACY_CONTENT_FIELDS = Object.freeze([
   "text",
+  "text_binding",
   "readout",
   "readout_label",
   "control",
@@ -29,7 +31,7 @@ const LEGACY_CONTENT_FIELDS = Object.freeze([
   "action_label"
 ]);
 const ELEMENT_FIELDS = Object.freeze({
-  text: Object.freeze(["kind", "text", "strong"]),
+  text: Object.freeze(["kind", "text", "text_binding", "strong"]),
   repeat_text: Object.freeze(["kind", "source", "prefix", "suffix", "strong"]),
   readout: Object.freeze(["kind", "binding", "label", "repeat_label"]),
   meter: Object.freeze(["kind", "binding", "min", "max", "label", "repeat_label"]),
@@ -224,13 +226,21 @@ function normalizeElements(value, depth, state, ownerRoot, repeatMax) {
       );
     }
     if (element.kind === "text") {
-      if (typeof element.text !== "string") {
+      const hasText = element.text !== undefined;
+      const hasBinding = element.text_binding !== undefined;
+      if (hasText === hasBinding) {
+        throw new InterfaceIntentError("HOLD_INTERFACE_CONTENT_AMBIGUOUS", at + " must provide exactly one of .text or .text_binding");
+      }
+      if (hasText && typeof element.text !== "string") {
         throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".text must be a string");
+      }
+      if (hasBinding && typeof element.text_binding !== "string") {
+        throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".text_binding must be a string");
       }
       if (element.strong !== undefined && typeof element.strong !== "boolean") {
         throw new InterfaceIntentError("HOLD_INTERFACE_ELEMENT_INVALID", at + ".strong must be boolean when supplied");
       }
-      const normalized = { kind: "text", text: element.text };
+      const normalized = hasBinding ? { kind: "text", text_binding: element.text_binding } : { kind: "text", text: element.text };
       if (element.strong !== undefined) normalized.strong = element.strong;
       return normalized;
     }
@@ -462,6 +472,12 @@ function normalizeInterfaceIntent(intent) {
       "intent.title and intent.title_binding are mutually exclusive; a view title has one authored source"
     );
   }
+  if (authored.text !== undefined && authored.text_binding !== undefined) {
+    throw new InterfaceIntentError(
+      "HOLD_INTERFACE_CONTENT_AMBIGUOUS",
+      "intent.text and intent.text_binding are mutually exclusive; body text has one authored source"
+    );
+  }
 
   if (authored.accent !== undefined) {
     if (
@@ -509,10 +525,11 @@ function normalizeInterfaceIntent(intent) {
     }
   }
 
-  const hasInteractiveLegacy = ["title_binding", "readout", "control", "action"].some((key) => authored[key] !== undefined && authored[key] !== null);
+  const hasInteractiveLegacy = ["title_binding", "text_binding", "readout", "control", "action"].some((key) => authored[key] !== undefined && authored[key] !== null);
   const hasInteractiveElements = !!(elements && elements.some(function containsInteractive(element) {
     if (element.kind === "row" || element.kind === "group" || element.kind === "repeat_when") return element.children.some(containsInteractive);
-    if (element.kind === "text" || element.kind === "repeat_text" || element.kind === "tile") return false;
+    if (element.kind === "text") return element.text_binding !== undefined;
+    if (element.kind === "repeat_text" || element.kind === "tile") return false;
     return true;
   }));
   if (authored.bindings !== undefined && !hasInteractiveLegacy && !hasInteractiveElements) {
