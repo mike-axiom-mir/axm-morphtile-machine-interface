@@ -35,7 +35,7 @@ test("row and group layouts compile recursively while preserving authored order"
   });
 
   assert.equal(out.status, "CANDIDATE");
-  assert.equal(out.machine.version, "0.5.18");
+  assert.equal(out.machine.version, "0.5.19");
   assert.deepEqual(out.candidate.operation.view.body, [
     {
       group: [
