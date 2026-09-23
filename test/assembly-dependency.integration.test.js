@@ -55,6 +55,19 @@ function interfaceCandidate() {
   ));
 }
 
+function canonicalTitleInterfaceCandidate() {
+  return authorInterface(request(
+    "interface-canonical-title-proof-source",
+    "Author one canonical-state title while preserving target-owned read authority",
+    {
+      tile_path: "mt_shell/mt_inner",
+      title_binding: "count",
+      elements: [{ kind: "text", text: "Receiver title proof" }],
+      bindings: { readouts: ["count"] }
+    }
+  ));
+}
+
 function placedInterfaceCandidate() {
   return authorInterface(request(
     "interface-presentation-proof-source",
@@ -142,6 +155,21 @@ test("exact Assembly receiver preserves Interface target proofs and binds them i
   assert.deepEqual(combined.target_binding, { id: "mt_inner", path: "mt_shell/mt_inner" });
   assert.deepEqual(combined.dependencies, interfaceOut.dependencies);
   assert.equal(combined.closure_hash.scope, "candidate+dependencies+world_requirements");
+});
+
+test("current Assembly receiver preserves canonical title expression and its readout proof", { skip: !assemblyPath }, () => {
+  assert.equal(assemblyCommit, EXPECTED_ASSEMBLY_COMMIT, "CI Assembly checkout must match fixtures/integration-sources.json");
+  const { run: assemble } = require(path.resolve(assemblyPath));
+  const interfaceOut = canonicalTitleInterfaceCandidate();
+
+  assert.equal(interfaceOut.status, "CANDIDATE", JSON.stringify(interfaceOut.holds));
+  assert.deepEqual(interfaceOut.candidate.operation.view.title, ["var", "count"]);
+  assert.deepEqual(interfaceOut.dependencies[0].requires.readout_logic_vars, ["count"]);
+
+  const combined = assembleWith(assemble, [interfaceOut], "assembly-canonical-title-retention");
+  assert.equal(combined.status, "CANDIDATE", JSON.stringify(combined.holds));
+  assert.deepEqual(combined.candidate.view.title, ["var", "count"]);
+  assert.deepEqual(combined.dependencies, interfaceOut.dependencies);
 });
 
 test("current Assembly receiver folds exact Interface v0.5 presentation omission plus false and zero values", { skip: !assemblyPath }, () => {

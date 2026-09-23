@@ -1,6 +1,6 @@
 # Status
 
-- Machine version: 0.5.17
+- Machine version: 0.5.18
 - State: PINNED CORE + RECEIVER + CLAIM-IDENTIFIED INTEGRATION EVIDENCE
 - Local tests: `npm test`
 - MorphTile target: v0.4 at `685df074701feeae3e9d789e532d0a3658030bf4`
@@ -14,7 +14,9 @@ Interface 0.5.14 authored-null presentation integrity was independently verified
 
 Subsequent integrated evidence work proved all seven supported host presentation modes and session-only user adjustment (#37), kept symbolic readout/control/action names in disjoint target authority namespaces (#38), replaced source/YAML inference with a structured executable integration-proof registry (#39), proved that multiple authored controls remain multiple views over one target-owned canonical parameter rather than duplicate state (#40), proved presentation-anchor portability, canonical control/action write-through across presentations, tile-owned interaction authority under composition, and fail-closed nested composition scope through Interface #46. Exact PR and merge identities remain historical receipts; persistent repository truth describes capabilities and evidence state rather than pretending a self-SHA is stable across future commits.
 
-The machine includes bounded canonical-state readouts, meters, truthy/threshold/equality conditions and repeat generation; bounded nearest-repeat lexical selectors and presentation; tile-owned local and exact same-root composition; native accent/width/strong styling; mode-owned placement descriptors; safe action/control bindings; source-tree/depth/expanded-repeat budgets; and exact receiver/core pinning.
+The machine includes bounded canonical-state titles, readouts, meters, truthy/threshold/equality conditions and repeat generation; bounded nearest-repeat lexical selectors and presentation; tile-owned local and exact same-root composition; native accent/width/strong styling; mode-owned placement descriptors; safe action/control bindings; source-tree/depth/expanded-repeat budgets; and exact receiver/core pinning.
+
+Interface 0.5.18 also exposes one bounded canonical-state title source through `intent.title_binding`, compiling only to MorphTile's existing `view.title: ["var", name]` expression after the same readout proof used by body state reads. Static `title` and canonical `title_binding` are mutually exclusive, so the machine never guesses which source is authoritative.
 
 Interface 0.5.17 consumes the now-integrated MorphTile lexical presentation primitive rather than duplicating it. `repeat_text` may render the nearest repeat `index` or `count` with optional static prefix/suffix. Readout/meter/button/control nodes may use the same bounded descriptor through `repeat_label`. The producer compiles those descriptors only to MorphTile-native expressions over lexical `i` / `i_of`; it does not expose general expression authoring, create canonical repeat-local state, or widen the target action/parameter authority decorated by the label.
 
