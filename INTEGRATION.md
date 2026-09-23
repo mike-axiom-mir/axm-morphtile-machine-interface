@@ -6,7 +6,7 @@ Tested contract target:
 - commit: 685df074701feeae3e9d789e532d0a3658030bf4
 - format: v0.4
 - provisional envelope: v0.1
-- machine version: 0.5.18
+- machine version: 0.5.19
 
 Without placement, the adapter emits `morphtile.view-operation/v0.5`.
 
@@ -17,7 +17,7 @@ With placement, the adapter emits `morphtile.interface-operations/v0.5` with exa
 
 Before candidate emission, v0.5 normalizes a bounded Interface Machine intent contract. Unknown top-level fields, malformed tile paths, orphan labels/bindings, malformed symbolic bindings, malformed nested layout and malformed placement descriptors HOLD instead of being silently ignored.
 
-View composition is deterministic. `intent.elements` may recursively use MorphTile-native `row`, `group`, and bounded `when` containers around `text`, `readout`, `meter`, `control` and `action` leaves. Authored ordering is preserved at every level. The complete tree is bounded to 64 total nodes and six nested containers; this is a creation-machine safety bound rather than a change to MorphTile core.
+View composition is deterministic. `intent.elements` may recursively use MorphTile-native `row`, `group`, and bounded `when` containers around `text`, `readout`, `meter`, `control` and `action` leaves. Authored ordering is preserved at every level. Static body text stays authored text; canonical body text may instead use `text_binding`, which must be declared through `intent.bindings.readouts` and compiles only to MorphTile-native `["var", name]` text. Static `text` and `text_binding` are mutually exclusive, and arbitrary caller-authored expression trees remain outside the Interface contract. The complete tree is bounded to 64 total nodes and six nested containers; this is a creation-machine safety bound rather than a change to MorphTile core.
 
 `when` is deliberately narrower than MorphTile's general expression capability. The authored form is `{ kind: "when", binding: "name", children: [...] }`, which compiles to a native group carrying `when: ["var", "name"]`. The binding is declared through `intent.bindings.readouts` and target proof `readout_logic_vars`, because conditional visibility reads canonical target state. Interface Machine never copies the current value and never evaluates the condition itself.
 
@@ -31,6 +31,7 @@ Pinned integration proves:
 - session presentation adjustment does not rewrite canonical presentation matter;
 - declared `mt_tower:levels` becomes a real native MorphTile parameter control without copying or changing its canonical value;
 - authored explanatory text can coexist with that control in the real compiled panel;
+- canonical body text follows target-owned `mt_tower.beacon` through Core's native evaluator without rewriting the Interface-authored view or creating an Interface state store;
 - flat authored node order survives real panel compilation;
 - nested native `group` → `row` layout compiles to the real tower parameter control plus exposed `toggle` input action without copying canonical values;
 - bounded `when` visibility is absent while canonical `mt_tower.beacon` is `0`, appears after the real `toggle` signal changes the canonical variable to `1`, preserves the real `toggle` action inside the visible group, does not mutate canonical matter while rendering, and rolls back exactly;
