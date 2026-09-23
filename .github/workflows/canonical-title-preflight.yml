@@ -1,0 +1,345 @@
+name: canonical-title-preflight
+
+on:
+  push:
+    branches:
+      - interface/canonical-title-binding-20260923
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, '[canonical-title-patched]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: interface/canonical-title-binding-20260923
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Apply bounded canonical title binding
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{path}: expected exactly one occurrence, found {count}: {old!r}")
+              p.write_text(text.replace(old, new, 1))
+
+          replace_once(
+              "src/interface-intent.js",
+              '  "title",\n  "accent",',
+              '  "title",\n  "title_binding",\n  "accent",'
+          )
+          replace_once(
+              "src/interface-intent.js",
+              '  for (const field of ["title", "text", "readout_label", "control_label", "action_label"]) {\n    assertString(authored[field], "intent." + field);\n  }\n',
+              '  for (const field of ["title", "text", "readout_label", "control_label", "action_label"]) {\n    assertString(authored[field], "intent." + field);\n  }\n  if (authored.title !== undefined && authored.title_binding !== undefined) {\n    throw new InterfaceIntentError(\n      "HOLD_INTERFACE_CONTENT_AMBIGUOUS",\n      "intent.title and intent.title_binding are mutually exclusive; a view title has one authored source"\n    );\n  }\n'
+          )
+          replace_once(
+              "src/interface-intent.js",
+              '  const hasInteractiveLegacy = ["readout", "control", "action"].some((key) => authored[key] !== undefined && authored[key] !== null);',
+              '  const hasInteractiveLegacy = ["title_binding", "readout", "control", "action"].some((key) => authored[key] !== undefined && authored[key] !== null);'
+          )
+
+          replace_once(
+              "src/index.js",
+              'const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.17" };',
+              'const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.18" };'
+          )
+          replace_once(
+              "src/index.js",
+              '  const requested = { readouts: [], actions: [], controls: [] };\n  if (intent.readout !== undefined) requested.readouts.push(intent.readout);',
+              '  const requested = { readouts: [], actions: [], controls: [] };\n  if (intent.title_binding !== undefined) requested.readouts.push(intent.title_binding);\n  if (intent.readout !== undefined) requested.readouts.push(intent.readout);'
+          )
+          replace_once(
+              "src/index.js",
+              '    title: intent.title !== undefined ? intent.title : "Interface",',
+              '    title: intent.title_binding !== undefined ? ["var", intent.title_binding] : (intent.title !== undefined ? intent.title : "Interface"),'
+          )
+
+          machine = Path("machine.json")
+          data = json.loads(machine.read_text())
+          if data.get("version") != "0.5.17":
+              raise SystemExit(f"machine.json: expected 0.5.17, found {data.get('version')}")
+          data["version"] = "0.5.18"
+          machine.write_text(json.dumps(data, separators=(",", ":")) + "\n")
+
+          package = Path("package.json")
+          pdata = json.loads(package.read_text())
+          if pdata.get("version") != "0.5.17":
+              raise SystemExit(f"package.json: expected 0.5.17, found {pdata.get('version')}")
+          pdata["version"] = "0.5.18"
+          package.write_text(json.dumps(pdata, separators=(",", ":")) + "\n")
+
+          replace_once(
+              "INTEGRATION.md",
+              "- machine version: 0.5.17",
+              "- machine version: 0.5.18"
+          )
+          replace_once(
+              "STATUS.md",
+              "- Machine version: 0.5.17",
+              "- Machine version: 0.5.18"
+          )
+          replace_once(
+              "STATUS.md",
+              "The machine includes bounded canonical-state readouts, meters, truthy/threshold/equality conditions and repeat generation; bounded nearest-repeat lexical selectors and presentation; tile-owned local and exact same-root composition; native accent/width/strong styling; mode-owned placement descriptors; safe action/control bindings; source-tree/depth/expanded-repeat budgets; and exact receiver/core pinning.",
+              "The machine includes bounded canonical-state titles, readouts, meters, truthy/threshold/equality conditions and repeat generation; bounded nearest-repeat lexical selectors and presentation; tile-owned local and exact same-root composition; native accent/width/strong styling; mode-owned placement descriptors; safe action/control bindings; source-tree/depth/expanded-repeat budgets; and exact receiver/core pinning."
+          )
+          replace_once(
+              "STATUS.md",
+              "Interface 0.5.17 consumes the now-integrated MorphTile lexical presentation primitive rather than duplicating it.",
+              "Interface 0.5.18 also exposes one bounded canonical-state title source through `intent.title_binding`, compiling only to MorphTile's existing `view.title: [\"var\", name]` expression after the same readout proof used by body state reads. Static `title` and canonical `title_binding` are mutually exclusive, so the machine never guesses which source is authoritative.\n\nInterface 0.5.17 consumes the now-integrated MorphTile lexical presentation primitive rather than duplicating it."
+          )
+
+          readme_marker = "MorphTile core now also evaluates expression-backed text plus readout/meter/button/control labels in the nearest repeat scope."
+          readme = Path("README.md")
+          rtext = readme.read_text()
+          if rtext.count(readme_marker) != 1:
+              raise SystemExit("README.md: canonical insertion marker not unique")
+          paragraph = (
+              "A view title may also read one canonical target variable through `intent.title_binding`. "
+              "That field is mutually exclusive with static `intent.title`, must be declared in `intent.bindings.readouts`, "
+              "and compiles only to MorphTile's native `view.title: [\"var\", name]` expression. The live title is resolved by "
+              "MorphTile at render time, so Interface carries the symbolic name and target-proof obligation but never snapshots the value or exposes arbitrary title expressions.\n\n"
+          )
+          readme.write_text(rtext.replace(readme_marker, paragraph + readme_marker, 1))
+          replace_once(
+              "README.md",
+              "- readout/meter/when/repeat/action/control names must be explicitly declared symbolic bindings, including when nested inside row/group/when/repeat layout;",
+              "- `title_binding` plus readout/meter/when/repeat/action/control names must be explicitly declared symbolic bindings, including when nested inside row/group/when/repeat layout;"
+          )
+          replace_once(
+              "README.md",
+              "- IMPLEMENTED: fail-closed interface intent normalization, atomic ordered/nested relative view generation, bounded native static view styling, bounded local tile composition, bounded explicit same-root path composition, bounded canonical-state meters,",
+              "- IMPLEMENTED: fail-closed interface intent normalization, atomic ordered/nested relative view generation, bounded canonical-state titles, bounded native static view styling, bounded local tile composition, bounded explicit same-root path composition, bounded canonical-state meters,"
+          )
+
+          changelog = Path("CHANGELOG.md")
+          ctext = changelog.read_text()
+          marker = "# Changelog\n\n"
+          if not ctext.startswith(marker):
+              raise SystemExit("CHANGELOG.md: unexpected heading")
+          entry = "## 0.5.18 — 2026-09-23\n\n- Add `intent.title_binding` as a bounded canonical-state title source that compiles only to MorphTile-native `view.title: [\\\"var\\\", name]`.\n- Require the title binding to use the existing readout declaration/proof lane; Interface carries only the symbolic name and never snapshots the canonical value.\n- Reject simultaneous static `title` plus `title_binding` as ambiguous rather than silently choosing one source.\n- Preserve the same exact MorphTile Core and Assembly receiver pins; no new runtime, bridge, state, or permission primitive is introduced.\n\n"
+          changelog.write_text(marker + entry + ctext[len(marker):])
+
+          manifest_path = Path("test/integration-proof-manifest.json")
+          manifest = json.loads(manifest_path.read_text())
+          proofs = manifest["proofs"]
+          new_proof = {"path": "test/canonical-title-binding.integration.test.js", "claim": "canonical-title-binding", "dependencies": ["morphtile"]}
+          if any(p.get("path") == new_proof["path"] for p in proofs):
+              raise SystemExit("integration proof already registered")
+          insert_at = next(i for i, p in enumerate(proofs) if p["path"] == "test/conditional.integration.test.js")
+          proofs.insert(insert_at, new_proof)
+          manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
+
+          Path("test/canonical-title-binding.test.js").write_text(r'''"use strict";
+
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const { run } = require("../src");
+
+function request(id, intent) {
+  return {
+    envelope_version: "0.1",
+    request_id: id,
+    goal: "Bind one interface title to canonical target state without copying that state",
+    intent,
+    provenance: { caller: "canonical-title-binding-test" }
+  };
+}
+
+test("canonical title binding compiles to one native var expression and one ordinary readout proof", () => {
+  const out = run(request("canonical-title", {
+    tile_path: "mt_tower",
+    title_binding: "beacon",
+    elements: [{ kind: "text", text: "Tower status" }],
+    bindings: { readouts: ["beacon"] }
+  }));
+
+  assert.equal(out.status, "CANDIDATE", JSON.stringify(out.holds));
+  assert.deepEqual(out.candidate.operation.view, {
+    title: ["var", "beacon"],
+    body: [{ text: "Tower status" }]
+  });
+  assert.deepEqual(out.dependencies[0].requires.readout_logic_vars, ["beacon"]);
+  assert.equal(JSON.stringify(out.candidate).includes("canonical_state"), false);
+});
+
+test("static and canonical title sources are mutually exclusive", () => {
+  const out = run(request("ambiguous-title", {
+    tile_path: "mt_tower",
+    title: "Static",
+    title_binding: "beacon",
+    bindings: { readouts: ["beacon"] }
+  }));
+
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INTERFACE_CONTENT_AMBIGUOUS");
+  assert.equal(out.candidate, null);
+});
+
+test("title binding must be declared on the canonical readout proof lane", () => {
+  const out = run(request("undeclared-title", {
+    tile_path: "mt_tower",
+    title_binding: "beacon",
+    bindings: { readouts: [] }
+  }));
+
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INVALID_INTERFACE_BINDING");
+  assert.match(out.holds[0].detail, /beacon/);
+  assert.equal(out.candidate, null);
+});
+
+test("title field remains static text and cannot smuggle an arbitrary expression", () => {
+  const out = run(request("arbitrary-title-expression", {
+    tile_path: "mt_tower",
+    title: ["+", "Tower ", ["var", "beacon"]]
+  }));
+
+  assert.equal(out.status, "HOLD");
+  assert.equal(out.holds[0].code, "HOLD_INTERFACE_TEXT_INVALID");
+  assert.equal(out.candidate, null);
+});
+''')
+
+          Path("test/canonical-title-binding.integration.test.js").write_text(r'''"use strict";
+
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const path = require("node:path");
+const manifest = require("../machine.json");
+const { run } = require("../src");
+
+const corePath = process.env.MORPHTILE_CORE;
+const runtimeCommit = process.env.MORPHTILE_COMMIT;
+
+function collect(root, predicate) {
+  const found = [];
+  const visit = (node) => {
+    if (!node || typeof node !== "object") return;
+    if (predicate(node)) found.push(node);
+    for (const child of node.children || []) visit(child);
+  };
+  visit(root);
+  return found;
+}
+
+function titleOf(MT, ws) {
+  const compiled = MT.compilePanel(ws.live);
+  const panels = collect(compiled.root, (node) => node.tile === "mt_tower" && String(node.cls || "").includes("is-view"));
+  assert.equal(panels.length, 1, "exactly one authored tower view must render");
+  const headings = collect(panels[0], (node) => node.tag === "h3");
+  assert.equal(headings.length, 1, "authored view must expose one title heading");
+  return headings[0].text;
+}
+
+test("canonical title follows target state through the pinned MorphTile evaluator without rewriting view matter", { skip: !corePath }, () => {
+  assert.equal(runtimeCommit, manifest.tested_against.commit, "CI runtime must match machine.json tested_against.commit");
+  const MT = require(path.resolve(corePath));
+  const ws = MT.createWorkspace(MT.seedWorld());
+  assert.equal(MT.readVars(ws.live, "mt_tower", 0).beacon, 0);
+
+  const out = run({
+    envelope_version: "0.1",
+    request_id: "canonical-title-runtime",
+    goal: "Prove a generated title reads canonical state live while Interface owns no duplicate value",
+    intent: {
+      tile_path: "mt_tower",
+      title_binding: "beacon",
+      elements: [{ kind: "text", text: "Canonical tower title" }],
+      bindings: { readouts: ["beacon"] }
+    },
+    provenance: { caller: "canonical-title-binding-integration" }
+  });
+
+  assert.equal(out.status, "CANDIDATE", JSON.stringify(out.holds));
+  assert.deepEqual(out.dependencies[0].requires.readout_logic_vars, ["beacon"]);
+  assert.deepEqual(out.candidate.operation.view.title, ["var", "beacon"]);
+
+  const candidate = MT.cloneBody(ws, "ai", "ai:interface-canonical-title");
+  const edited = MT.editCandidate(ws, candidate, out.candidate.operation);
+  assert.ok(edited.ok, edited.error);
+  const plan = MT.planMerge(ws, [candidate]);
+  assert.equal(plan.status, "READY", JSON.stringify(plan));
+  const committed = MT.commitPlan(ws, plan.id);
+  assert.ok(committed.ok, JSON.stringify(committed));
+
+  const authoredView = JSON.stringify(ws.live.tiles.mt_tower.view);
+  const committedHash = MT.structHash(ws.live);
+  assert.equal(titleOf(MT, ws), "0");
+  assert.equal(MT.structHash(ws.live), committedHash, "rendering the canonical title must remain read-only");
+
+  MT.act(ws, { do: "signal", tile: "mt_tower", name: "toggle" });
+  assert.equal(MT.readVars(ws.live, "mt_tower", 0).beacon, 1);
+  assert.equal(titleOf(MT, ws), "1", "title must follow canonical target state without a new Interface state store");
+  assert.equal(JSON.stringify(ws.live.tiles.mt_tower.view), authoredView, "runtime state changes must not rewrite Interface-authored view matter");
+});
+''')
+
+          # Reuse the existing Assembly dependency lane to prove the new title expression survives receiver folding.
+          apath = Path("test/assembly-dependency.integration.test.js")
+          atext = apath.read_text()
+          helper_marker = '''function placedInterfaceCandidate() {
+'''
+          helper = r'''function canonicalTitleInterfaceCandidate() {
+  return authorInterface(request(
+    "interface-canonical-title-proof-source",
+    "Author one canonical-state title while preserving target-owned read authority",
+    {
+      tile_path: "mt_shell/mt_inner",
+      title_binding: "count",
+      elements: [{ kind: "text", text: "Receiver title proof" }],
+      bindings: { readouts: ["count"] }
+    }
+  ));
+}
+
+'''
+          if atext.count(helper_marker) != 1:
+              raise SystemExit("assembly-dependency.integration.test.js: helper marker not unique")
+          atext = atext.replace(helper_marker, helper + helper_marker, 1)
+          test_marker = '''test("current Assembly receiver folds exact Interface v0.5 presentation omission plus false and zero values", { skip: !assemblyPath }, () => {
+'''
+          receiver_test = r'''test("current Assembly receiver preserves canonical title expression and its readout proof", { skip: !assemblyPath }, () => {
+  assert.equal(assemblyCommit, EXPECTED_ASSEMBLY_COMMIT, "CI Assembly checkout must match fixtures/integration-sources.json");
+  const { run: assemble } = require(path.resolve(assemblyPath));
+  const interfaceOut = canonicalTitleInterfaceCandidate();
+
+  assert.equal(interfaceOut.status, "CANDIDATE", JSON.stringify(interfaceOut.holds));
+  assert.deepEqual(interfaceOut.candidate.operation.view.title, ["var", "count"]);
+  assert.deepEqual(interfaceOut.dependencies[0].requires.readout_logic_vars, ["count"]);
+
+  const combined = assembleWith(assemble, [interfaceOut], "assembly-canonical-title-retention");
+  assert.equal(combined.status, "CANDIDATE", JSON.stringify(combined.holds));
+  assert.deepEqual(combined.candidate.view.title, ["var", "count"]);
+  assert.deepEqual(combined.dependencies, interfaceOut.dependencies);
+});
+
+'''
+          if atext.count(test_marker) != 1:
+              raise SystemExit("assembly-dependency.integration.test.js: test marker not unique")
+          apath.write_text(atext.replace(test_marker, receiver_test + test_marker, 1))
+          PY
+
+          rm .github/workflows/canonical-title-preflight.yml
+
+          npm test
+
+          git config user.name "mike-axiom-mir"
+          git config user.email "miketobi90@gmail.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "Add canonical-state interface titles [canonical-title-patched]"
+          git push origin HEAD:interface/canonical-title-binding-20260923
