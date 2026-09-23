@@ -2,7 +2,7 @@
 
 const { assertRequest, result } = require("./envelope");
 const { InterfaceIntentError, TILE_PATH, normalizeInterfaceIntent } = require("./interface-intent");
-const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.17" };
+const MACHINE = { id: "axm.morphtile.machine.interface", version: "0.5.18" };
 const PRESENTATION_MODES = new Set(["screen", "docked", "floating", "fullscreen", "embedded", "world", "tile"]);
 const DOCKS = new Set(["left", "right", "top", "bottom"]);
 const PRESENTATION_KEYS = new Set(["mode", "dock", "preferred_size", "preferred_position", "user_adjustable", "anchor"]);
@@ -58,6 +58,7 @@ function normalizeBindings(value) {
 
 function requestedBindings(intent) {
   const requested = { readouts: [], actions: [], controls: [] };
+  if (intent.title_binding !== undefined) requested.readouts.push(intent.title_binding);
   if (intent.readout !== undefined) requested.readouts.push(intent.readout);
   if (intent.action !== undefined) requested.actions.push(intent.action);
   if (intent.control !== undefined) requested.controls.push(intent.control);
@@ -212,7 +213,7 @@ function buildView(intent) {
   }
   if (!body.length) body.push({ text: "Interface candidate" });
   const view = {
-    title: intent.title !== undefined ? intent.title : "Interface",
+    title: intent.title_binding !== undefined ? ["var", intent.title_binding] : (intent.title !== undefined ? intent.title : "Interface"),
     body
   };
   if (intent.accent !== undefined) view.accent = intent.accent;

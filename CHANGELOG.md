@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.18 — 2026-09-23
+
+- Add `intent.title_binding` as a bounded canonical-state title source that compiles only to MorphTile-native `view.title: ["var", name]`.
+- Require the title binding to use the existing readout declaration/proof lane; Interface carries only the symbolic name and never snapshots the canonical value.
+- Reject simultaneous static `title` plus `title_binding` as ambiguous rather than silently choosing one source.
+- Preserve the same exact MorphTile Core and Assembly receiver pins; no new runtime, bridge, state, or permission primitive is introduced.
+
 ## 0.5.17 — 2026-09-22
 
 - Reject duplicate symbolic names inside `intent.bindings.readouts`, `.actions`, or `.controls` instead of silently deduplicating authored proof vocabulary.

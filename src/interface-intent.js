@@ -5,6 +5,7 @@ const { types: { isProxy } } = require("node:util");
 const INTERFACE_INTENT_FIELDS = Object.freeze([
   "tile_path",
   "title",
+  "title_binding",
   "accent",
   "width",
   "text",
@@ -455,6 +456,12 @@ function normalizeInterfaceIntent(intent) {
   for (const field of ["title", "text", "readout_label", "control_label", "action_label"]) {
     assertString(authored[field], "intent." + field);
   }
+  if (authored.title !== undefined && authored.title_binding !== undefined) {
+    throw new InterfaceIntentError(
+      "HOLD_INTERFACE_CONTENT_AMBIGUOUS",
+      "intent.title and intent.title_binding are mutually exclusive; a view title has one authored source"
+    );
+  }
 
   if (authored.accent !== undefined) {
     if (
@@ -502,7 +509,7 @@ function normalizeInterfaceIntent(intent) {
     }
   }
 
-  const hasInteractiveLegacy = ["readout", "control", "action"].some((key) => authored[key] !== undefined && authored[key] !== null);
+  const hasInteractiveLegacy = ["title_binding", "readout", "control", "action"].some((key) => authored[key] !== undefined && authored[key] !== null);
   const hasInteractiveElements = !!(elements && elements.some(function containsInteractive(element) {
     if (element.kind === "row" || element.kind === "group" || element.kind === "repeat_when") return element.children.some(containsInteractive);
     if (element.kind === "text" || element.kind === "repeat_text" || element.kind === "tile") return false;
